@@ -1,0 +1,47 @@
+plugins {
+    id 'java'
+    id 'distribution'
+}
+
+dependencies {
+    implementation 'org.slf4j:slf4j-api:1.7.21'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.21'
+    implementation 'nl.junglecomputing.cashmere:cashmere:0.2.0'
+    implementation 'nl.junglecomputing.cashmere:common-source-identification-cashmere-native:0.1.0'
+    implementation 'edu.emory.mathcs:JTransforms:2.4'
+}
+
+repositories {
+    jcenter()
+    maven() {
+        // for sbbi-upnplib
+	url 'http://maven.nuiton.org/release'
+    }
+
+}
+
+jar {
+    from('src/main/java') {
+      include '**/*.cl'
+   }
+}
+
+installDist.dependsOn jar
+
+distributions {
+    main {
+        baseName = project.name
+        contents {
+	    from 'log4j.properties'
+	    into('bin') {
+	    	from 'scripts'
+	    }
+	    into('lib') {
+	    	from configurations.runtimeClasspath
+	    	from jar.archivePath
+	    }
+        }
+    }
+}
+
+

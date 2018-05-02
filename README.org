@@ -1,0 +1,99 @@
+#+title: Common Source Identification Cashmere
+
+* Introduction
+
+The Common Source Identification Cashmere application finds within a set of
+images the images that were made with the same camera.  It extracts PRNU (Photo
+Response Non Uniformity) patterns from images and based on these PRNU patterns
+it correlates each image with each other image using NCC (Normalized Cross
+Correlation) or PCE (Peak to Correlation Energy).  The images are then
+clustered with a hierarchical clustering approach with averaged inter-cluster
+distances based on the similarity scores from the correlation.  This
+implementation uses [[https://github.com/JungleComputing/mcl][Many-Core Levels (MCL)]], [[https://github.com/JungleComputing/cashmere][Cashmere]], and [[https://github.com/NLeSC/Constellation][Constellation]] to
+speed up the extraction and comparison on heterogeneous compute clusters with
+multiple different many-core devices such as GPUs, something we call compute
+jungles.  Besides this version, there is also a [[https://github.com/JungleComputing/common-source-identification-desktop][Desktop version]] available.
+
+This work can be cited with: Werkhoven, B. van; Hijma, P.; Jacobs,
+C.J.H.;Maassen, J.;Geradts, Z.J.M.H.;Bal, H.E.  A Jungle Computing approach to common image
+source identification in large collections of images (under submission).
+
+* Installation
+
+To install this software, OpenCL and a recent Java 8 is required.  The
+software can be built with:
+
+#+begin_src sh
+git clone https://github.com/JungleComputing/common-source-identification-cashmere
+cd common-source-identification-cashmere
+./gradlew distTar
+#+end_src
+
+This creates a distribution in ~build/distributions~ that can be unpacked
+anywhere and run with:
+
+#+begin_src sh
+cp build/distributions/common-source-identification-cashmere.tar /path/of/your/choice
+cd /path/of/your/choice
+tar xf common-source-identificaton-cashmere.tar
+#+end_src
+
+Alternatively, the following command installs the distribution in
+~build/install~. 
+
+#+begin_src sh
+./gradlew installDist
+#+end_src
+
+* Reproducing the results of the paper
+
+The results in the paper can be reproduced by downloading the [[http://forensics.inf.tu-dresden.de/ddimgdb/locations][Dresden image
+database]].  In the paper we used resolutions 4000x3000 (Pentax), 2560x1920
+(Praktica), and 3648x2736 (Olympos).  The application can be run with the
+instructions below.  First we move to the directory of the distribution, for
+example and add to the environment where the distribution is.  We assume that
+the distribution has been installed in ~/path/of/your/choice~:
+
+#+begin_src sh
+export COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR=/path/of/your/choice/common-source-identification
+cd $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR
+#+end_src
+
+We included a script to create subsets of the Dresden images.  To be able to
+use the script we need to set the following environment variable:
+
+#+begin_src sh
+export COMMON_SOURCE_IDENTIFICATION_IMAGE_DIR=/your/path/to/dresden/images
+#+end_src
+
+We can now create a subset of the Dresden images:
+
+#+begin_src sh
+./bin/create-image-set pentax 128
+#+end_src
+
+This creates a directory ~images~ with symlinks to the Dresden images, in this
+case 128 images.
+
+The next step is to run the Cashmere server on the head node of the cluster.
+To do this, we have to add to the environment on which  port we want to
+communicate with the Cashmere server:
+
+#+begin_src sh
+export CASHMERE_PORT=<your unique port number>
+#+end_src
+
+We can now start the Cashmere server:
+
+#+begin_src sh
+./bin/cashmere-server
+#+end_src
+
+Finally, we can start the application, enabling many-core devices (~-mc~),
+telling the applications where the images are and choosing a set of many-core
+devices:
+
+#+begin_src sh
+./bin/common-source-identificaton-cashmere -mc -image-dir images TitanX=1 TitanX-Pascal=1 K20=1
+#+end_src
+
