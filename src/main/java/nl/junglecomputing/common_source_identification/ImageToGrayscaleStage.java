@@ -20,11 +20,11 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 
 import ibis.cashmere.constellation.Buffer;
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.constellation.Timer;
 
 class ImageToGrayscaleStage extends Stage {
@@ -52,8 +52,11 @@ class ImageToGrayscaleStage extends Stage {
         return pixelsFloat;
     }
 
-    static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data) 
-	throws CashmereNotAvailable {
+    static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data)
+            throws CashmereNotAvailable {
+
+        Timer timer = Cashmere.getTimer("java", executor, "convert to grayscale");
+        int event = timer.start();
 
         Kernel kernel = Cashmere.getKernel("grayscaleKernel", device);
 
@@ -66,5 +69,7 @@ class ImageToGrayscaleStage extends Stage {
         KernelLaunch kernelLaunch = kernel.createLaunch();
 
         MCL.launchGrayscaleKernel(kernelLaunch, h * w, data.noisePattern, false, data.imagePointer, false);
+        timer.stop(event);
+
     }
 }

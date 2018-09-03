@@ -64,10 +64,8 @@ class ExecutorData {
      * The amount of device memory that an executor thread needs.
      */
     static long memoryForKernelExecutionThread(int h, int w, int nrBlocksForReduce) {
-        return h * w * Sizeof.cl_float * 6L
-                + nrBlocksForReduce * Sizeof.cl_double
-                + nrBlocksForReduce * Sizeof.cl_float + (long) Sizeof.cl_int * 5
-                + h * w * 3;
+        return h * w * Sizeof.cl_float * 6L + nrBlocksForReduce * Sizeof.cl_double + nrBlocksForReduce * Sizeof.cl_float
+                + (long) Sizeof.cl_int * 5 + h * w * 3;
     }
 
     private Device device;
@@ -75,7 +73,6 @@ class ExecutorData {
 
     // the allocated memory, generic names
     Pointer memHWFloat1;
-    Pointer memHWFloat2;
 
     Pointer memHWComplex1;
     Pointer memHWComplex2;
@@ -138,21 +135,21 @@ class ExecutorData {
     Pointer tempEnergy;
     Pointer energy;
 
+    Pointer noisePatternFreq1;
+    Pointer noisePatternFreq2;
+
     // the constructor allocates all the data.
     ExecutorData(Device device, int h, int w, int nrBlocksForReduce) {
         this.device = device;
         this.nrBlocksForReduce = nrBlocksForReduce;
 
         memHWFloat1 = device.allocate(h * w * Sizeof.cl_float);
-        memHWFloat2 = device.allocate(h * w * Sizeof.cl_float);
 
         memHWComplex1 = device.allocate(h * w * 2 * Sizeof.cl_float);
         memHWComplex2 = device.allocate(h * w * 2 * Sizeof.cl_float);
 
-        memDoubleNrBlocksForReduce = device
-                .allocate(nrBlocksForReduce * Sizeof.cl_double);
-        memIntNrBlocksForReduce = device
-                .allocate(nrBlocksForReduce * Sizeof.cl_float);
+        memDoubleNrBlocksForReduce = device.allocate(nrBlocksForReduce * Sizeof.cl_double);
+        memIntNrBlocksForReduce = device.allocate(nrBlocksForReduce * Sizeof.cl_float);
 
         memInt1 = device.allocate(Sizeof.cl_int);
         memFloat1 = device.allocate(Sizeof.cl_float);
@@ -175,7 +172,10 @@ class ExecutorData {
         // usesdata from LeafCorrelationsActivity
 
         // launchToComplex(AndFlip)
-        noisePattern = memHWFloat2;
+        noisePattern = device.allocate(h * w * Sizeof.cl_float);
+        noisePatternFreq1 = device.allocate(h * w * 2 * Sizeof.cl_float);
+        noisePatternFreq2 = device.allocate(h * w * 2 * Sizeof.cl_float);
+
         // uses data from LeafCorrelationsActivity
 
         // ifft

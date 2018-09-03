@@ -38,8 +38,7 @@ class FileToImageStage extends Stage {
         synchronized (FileToImageStage.class) {
             image = ImageIO.read(new BufferedInputStream(fileInputStream));
         }
-        if ((image != null) && (image.getWidth() >= 0)
-                && (image.getHeight() >= 0)) {
+        if ((image != null) && (image.getWidth() >= 0) && (image.getHeight() >= 0)) {
             return image;
         }
         return null;
@@ -56,7 +55,12 @@ class FileToImageStage extends Stage {
 
     static Buffer execute(String filename, int h, int w, String executor, ExecutorData data) throws IOException {
 
+        Timer timer = Cashmere.getTimer("java", executor, "Read in image");
+        int event = timer.start();
+
         ReadJPG.readJPG(data.imageBuffer, filename);
+
+        timer.stop(event);
 
         return data.imageBuffer;
     }

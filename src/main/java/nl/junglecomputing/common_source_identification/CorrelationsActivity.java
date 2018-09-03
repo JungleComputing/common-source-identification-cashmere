@@ -1,103 +1,162 @@
-/*
- * Copyright 2018 Vrije Universiteit Amsterdam, The Netherlands
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
-
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package nl.junglecomputing.common_source_identification;
 
 import java.io.File;
-import java.util.List;
+import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jocl.Pointer;
 
+import ibis.cashmere.constellation.Buffer;
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
+import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Constellation;
 import ibis.constellation.Context;
+import ibis.constellation.Event;
 
-// The base class for Leaf- and TreeCorrelationsActivity
-abstract class CorrelationsActivity extends Activity {
+public class CorrelationsActivity extends Activity {
 
-    static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.CorrelationsActivity");
+    private static final long serialVersionUID = 1L;
 
-    // Constellation logic
-    static final String LABEL = "correlation";
-    protected ActivityIdentifier parent;
-    protected boolean mc;
+    static boolean FLIPPED = true;
+    static boolean REGULAR = false;
 
-    // logic for subdivision of correlations
-    protected List<String> nodes;
-    protected int node1;
-    protected int node2;
-    protected String nodeName1;
-    protected String nodeName2;
-    protected File[] imageFiles;
+    public static final String LABEL = "Correlation";
+    private ActivityIdentifier id;
+    private int height;
+    private int width;
+    private int i;
+    private int j;
+    private File fi;
+    private File fj;
+    private boolean mc;
+    private boolean useCache;
 
-    protected int startI;
-    protected int endI;
-    protected int startJ;
-    protected int endJ;
-
-    protected int level;
-
-    // Correlation logic
-    protected int h;
-    protected int w;
-
-    protected Correlations correlations;
-    protected int nrReceivedCorrelations;
-    protected int nrCorrelationsToReceive;
-
-    CorrelationsActivity(int startI, int endI, int startJ, int endJ, int node1, int node2, int h, int w, List<String> nodes, 
-	    File[] imageFiles, boolean mc, int level) {
-	/* 
-	 * The images are subdivided over the nodes, for example, 0-25 to node A, 25-50 to B, 50-75 to C, and 75-100 to D.  The
-	 * correlations (0-25, 0-25) will be assigned to node A, (25-50, 25-50) to B, etc.  Then the correlations (0-25, 25-50)
-	 * could run efficiently on A and B since the images will likely to be there because of (0-25, 0-25) and (25-50, 25-50).
-	 * 
-	 * We could make sure that (0-25, 25-50) can only run on A and B, but for load-balancing purposes it is better to assign
-	 * them to any node.  However, we do make sure that CorrelationsActivities with the same range in the i and j direction,
-	 * so for example (0-25,0-25) gets assigned to a specific node.  We arrange that in the call to super() below:
-	 */
-        super(node1 == node2 ? new Context(nodes.get(node1) + LABEL, level) : new Context(LABEL, level), true);
-
-        this.mc = mc;
-
-        this.nodes = nodes;
-        this.node1 = node1;
-        this.node2 = node2;
-        this.nodeName1 = nodes.get(node1);
-        this.nodeName2 = nodes.get(node2);
-        this.imageFiles = imageFiles;
-
-        this.startI = startI;
-        this.endI = endI;
-        this.startJ = startJ;
-        this.endJ = endJ;
-
-        this.level = level;
-
-        this.h = h;
-        this.w = w;
-	
-        this.correlations = new Correlations();
-        this.nrReceivedCorrelations = 0;
-        this.nrCorrelationsToReceive = 0;
+    public CorrelationsActivity(ActivityIdentifier id, int height, int width, int i, int j, File fi, File fj, boolean runOnMc,
+            boolean useCache) {
+        super(new Context(LABEL, 1), false);
+        this.id = id;
+        this.height = height;
+        this.width = width;
+        this.i = i;
+        this.j = j;
+        this.fi = fi;
+        this.fj = fj;
+        this.mc = runOnMc;
+        this.useCache = useCache;
     }
 
-    CorrelationsActivity setParent(ActivityIdentifier aid) {
-        this.parent = aid;
-        return this;
+    @Override
+    public int initialize(Constellation constellation) {
+        Correlation c = null;
+        String executor = constellation.identifier().toString();
+        if (mc) {
+            ExecutorData data = ExecutorData.get(constellation);
+            c = new Correlation(i, j);
+            try {
+                Device device = Cashmere.getDevice("grayscaleKernel");
+                if (useCache) {
+                    while (!noisePatternOnDevice(executor, i, fi, device, data)) {
+                        // sleep???
+                    }
+                } else {
+                    ComputeNoisePattern.computePRNU_MC(i, fi, height, width, executor, device, data);
+                }
+                ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq1, height, width, REGULAR, executor, data);
+                if (useCache) {
+                    while (!noisePatternOnDevice(executor, j, fj, device, data)) {
+                        // sleep???
+                    }
+                } else {
+                    ComputeNoisePattern.computePRNU_MC(j, fj, height, width, executor, device, data);
+                }
+                ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq2, height, width, FLIPPED, executor, data);
+                c.coefficient = ComputeCorrelation.correlateMC(i, j, data.noisePatternFreq1, data.noisePatternFreq2, height,
+                        width, executor, device, data);
+            } catch (Exception e) {
+                throw new Error(e);
+            }
+        } else {
+            try {
+                c = ComputeCPU.computeCorrelation(height, width, i, j, fi, fj, executor);
+            } catch (IOException e) {
+                throw new Error(e);
+            }
+        }
+        constellation.send(new Event(identifier(), id, c));
+        return FINISH;
     }
+
+    /*
+     * This method tries to get the time domain noise pattern on the device and returns true if this succeeds.  If the noise
+     * pattern is in the cache (this is the cache of time domain noise patterns that resides in the main memory of the node), we
+     * obtain a read lock and we can copy the noise pattern to the device.  If we obtain a write lock, the noise pattern is not
+     * in the cache, we have to produce it, put it in the cache, and transfer it to the device.
+     *
+     *pre:
+     * post:
+     * - true:
+     *   - noise pattern index is on the device
+     *   - noise pattern index is in the cache
+     * - false
+     *   - noise pattern index is not on the device
+     *   - noise pattern index is not in the cache
+     */
+    private boolean noisePatternOnDevice(String thread, int index, File imageFile, Device device, ExecutorData data)
+            throws CashmereNotAvailable, LibFuncNotAvailable, IOException {
+        try {
+            LockToken<Buffer> lt = NoisePatternCache.lockNoisePattern(index);
+            if (lt.readLock()) {
+                copyNoisePatternToDevice(device, lt.availableElement, data.noisePattern);
+                NoisePatternCache.unlockNoisePattern(index);
+                return true;
+            } else if (lt.writeLock()) {
+                produceNoisePattern(thread, index, imageFile, device, lt.availableElement, data);
+                NoisePatternCache.unlockNoisePattern(index);
+                return true;
+            } else {
+                throw new Error("should not happen");
+            }
+        } catch (LockException e) {
+            return false;
+        }
+    }
+
+    /*
+     * pre:
+     * - the current thread holds a read lock for noisePattern
+     * post:
+     * - the noisePattern is on the device
+     */
+    private void copyNoisePatternToDevice(Device device, Buffer noisePattern, Pointer devicenp) {
+        device.copy(noisePattern, devicenp);
+    }
+
+    /*
+     * pre:
+     * - the current thread holds a write lock for noise pattern index
+     * post:
+     * - noise pattern index is on device
+     * - noise pattern index is in the cache
+    */
+    private void produceNoisePattern(String thread, int index, File imageFile, Device device, Buffer noisePattern,
+            ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable, IOException {
+
+        ComputeNoisePattern.computePRNU_MC(index, imageFile, height, width, thread, device, data);
+        // get the data from the device, noisePattern points to memory in the cache
+        device.get(noisePattern, data.noisePattern);
+    }
+
+    @Override
+    public int process(Constellation constellation, Event event) {
+        return FINISH;
+    }
+
+    @Override
+    public void cleanup(Constellation constellation) {
+        // empty
+    }
+
 }

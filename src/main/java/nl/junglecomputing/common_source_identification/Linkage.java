@@ -16,25 +16,24 @@
 
 package nl.junglecomputing.common_source_identification;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-
-import java.io.PrintWriter;
 
 class Linkage {
 
     static final String LINKAGE_FILENAME = "linkage.txt";
     static final String CLUSTERING_FILENAME = "clustering.txt";
-    
+
     static int[] findMax(double[][] cortable) {
         int N = cortable[0].length;
         double highest = -1e100;
         int index[] = new int[2];
-        for (int i=0; i<N; i++) {
-            for (int j=0; j<N; j++) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
                 if (cortable[i][j] > highest) {
                     highest = cortable[i][j];
                     index[0] = i;
@@ -49,11 +48,9 @@ class Linkage {
         int N = cortable.length;
         double[][] matrix = new double[N][N];
 
-        int c = 0;
-
         //copy cortable into matrix
-        for (int i=0; i<N; i++) {
-            for (int j=0; j<N; j++) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
                 matrix[i][j] = cortable[i][j];
             }
         }
@@ -61,20 +58,20 @@ class Linkage {
         //create data structures to hold info about clusters
         int next_cluster_id = N;
         ArrayList<Integer> cluster_ids = new ArrayList<Integer>(N);
-        for (int i=0; i<N; i++) {
-            cluster_ids.add(i,i);
+        for (int i = 0; i < N; i++) {
+            cluster_ids.add(i, i);
         }
 
-        HashMap<Integer,ArrayList<Integer>> cluster_members = new HashMap<Integer,ArrayList<Integer>>();
-        for (int i=0; i<N; i++) {
+        HashMap<Integer, ArrayList<Integer>> cluster_members = new HashMap<Integer, ArrayList<Integer>>();
+        for (int i = 0; i < N; i++) {
             ArrayList<Integer> l = new ArrayList<Integer>(1);
             l.add(i);
             cluster_members.put(i, l);
         }
 
-        ArrayList<Link> linkage = new ArrayList<Link>(N-1);
+        ArrayList<Link> linkage = new ArrayList<Link>(N - 1);
 
-        for (int iterator=0; iterator<N-1; iterator++) {
+        for (int iterator = 0; iterator < N - 1; iterator++) {
 
             //find the most similar pair of clusters
             int[] index_max = findMax(matrix);
@@ -104,20 +101,20 @@ class Linkage {
             }
 
             //update the similarity matrix
-            for (int i=0; i<N; i++) {
+            for (int i = 0; i < N; i++) {
                 if (cluster_members.containsKey(i)) {
                     int other = cluster_ids.get(i);
                     double sum = 0.0;
                     ArrayList<Integer> a = cluster_members.get(next_cluster_id);
                     ArrayList<Integer> b = cluster_members.get(other);
 
-                    for (int j=0; j<a.size(); j++) {
-                        for (int k=0; k<b.size(); k++) {
+                    for (int j = 0; j < a.size(); j++) {
+                        for (int k = 0; k < b.size(); k++) {
                             sum += cortable[a.get(j)][b.get(k)]; //needs to be cortable NOT matrix
                         }
                     }
 
-                    double avg = sum / (a.size()*b.size());
+                    double avg = sum / (a.size() * b.size());
 
                     matrix[n1][i] = avg;
                     matrix[i][n1] = avg;
@@ -125,7 +122,7 @@ class Linkage {
             }
 
             //erase cluster n2
-            for (int i=0; i<N; i++) {
+            for (int i = 0; i < N; i++) {
                 matrix[n2][i] = -1e200;
                 matrix[i][n2] = -1e200;
             }
@@ -160,8 +157,8 @@ class Linkage {
 
             //create data structures to hold info about clusters
             int next_cluster_id = N;
-            HashMap<Integer,ArrayList<Integer>> cluster_members = new HashMap<Integer,ArrayList<Integer>>();
-            for (int i=0; i<N; i++) {
+            HashMap<Integer, ArrayList<Integer>> cluster_members = new HashMap<Integer, ArrayList<Integer>>();
+            for (int i = 0; i < N; i++) {
                 ArrayList<Integer> l = new ArrayList<Integer>(1);
                 l.add(i);
                 cluster_members.put(i, l);
@@ -169,7 +166,7 @@ class Linkage {
 
             boolean termination = false;
             Iterator<Link> link_iterator = linkage.iterator();
-            for (int i=0; i<N-1 && termination == false; i++) {
+            for (int i = 0; i < N - 1 && termination == false; i++) {
                 Link link = link_iterator.next();
                 //System.out.println("[" + link.n1 + "," + link.n2 + "," + link.dist + "," + link.size + "]");
 
@@ -181,7 +178,7 @@ class Linkage {
                     }
                     termination = true;
                 }
-            
+
                 if (termination == false) {
                     //merge the clusters into a new cluster in our bookkeeping data structures
                     int cluster1 = link.n1;
@@ -201,23 +198,23 @@ class Linkage {
             textfile.println("labels:");
 
             int[] labeling = new int[N];
-            for (int i=0; i<N; i++) {
+            for (int i = 0; i < N; i++) {
                 labeling[i] = 0;
             }
 
             int label = 1;
             for (Map.Entry<Integer, ArrayList<Integer>> entry : cluster_members.entrySet()) {
                 //System.out.println("label=" + label + "key=" + entry.getKey() + "value=" + entry.getValue().toString() );
-                for (Integer m: entry.getValue()) {
+                for (Integer m : entry.getValue()) {
                     labeling[m.intValue()] = label;
                 }
                 label += 1;
             }
 
-            int num_digits = (int)Math.log10(label)+1;
-            String format = "%"+num_digits+"d ";
+            int num_digits = (int) Math.log10(label) + 1;
+            String format = "%" + num_digits + "d ";
             textfile.print("[");
-            for (int l: labeling) {
+            for (int l : labeling) {
                 textfile.format(format, l);
             }
             textfile.println("]");
@@ -229,5 +226,3 @@ class Linkage {
         }
     }
 }
-
-

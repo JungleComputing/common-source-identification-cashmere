@@ -19,8 +19,6 @@ package nl.junglecomputing.common_source_identification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibis.cashmere.constellation.Cashmere;
-
 class Stage {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.Stage");

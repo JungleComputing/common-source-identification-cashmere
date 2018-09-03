@@ -39,6 +39,8 @@ import ibis.constellation.Event;
 
 class ProgressActivity extends Activity {
 
+    private static final long serialVersionUID = 1L;
+
     public static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ProgressActivity");
 
     static final String LABEL = "ProgressActivity";
@@ -58,6 +60,8 @@ class ProgressActivity extends Activity {
     private Timer timer;
     private long startMillis;
 
+    private CorrelationMatrix correlationMatrix;
+
     private class ProgressTask extends TimerTask {
         @Override
         public void run() {
@@ -65,19 +69,19 @@ class ProgressActivity extends Activity {
                 double ratio = nrReceivedCorrelations / (double) nrCorrelationsToReceive;
                 String message = "Percentage of correlations: " + Math.round(ratio * 100) + "%";
                 if (nrReceivedCorrelations > 0) {
-		    long now = System.currentTimeMillis();
+                    long now = System.currentTimeMillis();
                     long elapsedMillis = now - startMillis;
                     long estimatedMillis = (long) (elapsedMillis / ratio) - elapsedMillis;
                     Duration d = Duration.ofMillis(estimatedMillis);
                     message += ", estimated time: " + format(d);
-		    if (nrReceivedCorrelationsPreviously > 0) {
-			int nrCorrelationsThisPeriod = nrReceivedCorrelations - nrReceivedCorrelationsPreviously;
-			double period = (now - timePreviously) / 1000.0;
-			double throughput = nrCorrelationsThisPeriod / period;
-			message += String.format(", througput: %.2f correlations/s", throughput);
-		    }
-		    nrReceivedCorrelationsPreviously = nrReceivedCorrelations;
-		    timePreviously = now;
+                    if (nrReceivedCorrelationsPreviously > 0) {
+                        int nrCorrelationsThisPeriod = nrReceivedCorrelations - nrReceivedCorrelationsPreviously;
+                        double period = (now - timePreviously) / 1000.0;
+                        double throughput = nrCorrelationsThisPeriod / period;
+                        message += String.format(", througput: %.2f correlations/s", throughput);
+                    }
+                    nrReceivedCorrelationsPreviously = nrReceivedCorrelations;
+                    timePreviously = now;
                 } else {
                     startMillis = System.currentTimeMillis();
                 }
@@ -93,14 +97,14 @@ class ProgressActivity extends Activity {
         return duration.toString().substring(2).replaceAll("(\\d[HMS])(?!$)", "$1 ").toLowerCase();
     }
 
-    ProgressActivity(ActivityIdentifier parent, int nrCorrelationsToReceive) {
-        super(new Context(ProgressActivity.LABEL), true, true);
-
+    ProgressActivity(ActivityIdentifier parent, int nrImages) {
+        super(new Context(ProgressActivity.LABEL), false, true);
         this.parent = parent;
 
-        this.nrCorrelationsToReceive = nrCorrelationsToReceive;
+        this.nrCorrelationsToReceive = ((nrImages - 1) * nrImages) / 2;
+        this.correlationMatrix = new CorrelationMatrix(nrImages);
         this.nrReceivedCorrelations = 0;
-	this.nrReceivedCorrelationsPreviously = 0;
+        this.nrReceivedCorrelationsPreviously = 0;
 
         this.timer = new Timer();
         this.startMillis = System.currentTimeMillis();
@@ -119,13 +123,10 @@ class ProgressActivity extends Activity {
 
     @Override
     public int process(Constellation cons, Event event) {
-        int nrCorrelations = (Integer) event.getData();
+        Correlation c = (Correlation) event.getData();
         synchronized (timer) {
-            if (logger.isDebugEnabled()) {
-                logger.debug("Received notification of {} correlations",
-                        nrCorrelations);
-            }
-            nrReceivedCorrelations += nrCorrelations;
+            nrReceivedCorrelations++;
+            correlationMatrix.add(c);
         }
         if (nrReceivedCorrelations == nrCorrelationsToReceive) {
             return FINISH;
@@ -147,6 +148,6 @@ class ProgressActivity extends Activity {
         timer.cancel();
         System.out.println();
 
-        cons.send(new Event(identifier(), parent, null));
+        cons.send(new Event(identifier(), parent, correlationMatrix));
     }
 }
