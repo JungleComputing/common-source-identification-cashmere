@@ -365,7 +365,16 @@ public class CommonSourceIdentification {
                     }
                 });
                 Cashmere.initializeLibraries();
+            } else {
+                // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer. Ouch. --Ceriel
+                try {
+                    Class.forName(FFT.class.getName());
+                } catch (ClassNotFoundException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
+            Cashmere.initializeLibraries();
 
             if (constellation.isMaster()) {
                 // this is only executed by the master

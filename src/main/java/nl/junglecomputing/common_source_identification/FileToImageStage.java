@@ -53,15 +53,15 @@ class FileToImageStage extends Stage {
         return image;
     }
 
-    static Buffer execute(String filename, int h, int w, String executor, ExecutorData data) throws IOException {
+    static Buffer execute(String filename, int h, int w, String executor, Buffer data) throws IOException {
 
         Timer timer = Cashmere.getTimer("java", executor, "Read in image");
         int event = timer.start();
 
-        ReadJPG.readJPG(data.imageBuffer, filename);
+        ReadJPG.readJPG(data, filename);
 
         timer.stop(event);
 
-        return data.imageBuffer;
+        return data;
     }
 }

@@ -174,7 +174,7 @@ class WienerStage extends Stage {
     public static void executeMC(Device device, int h, int w, String executor, ExecutorData data)
             throws CashmereNotAvailable, LibFuncNotAvailable {
 
-        Timer timer = Cashmere.getTimer("GPU", executor, "wiener");
+        Timer timer = Cashmere.getTimer("MC", executor, "wiener");
 
         int tevent = timer.start();
 

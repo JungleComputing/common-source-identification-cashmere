@@ -36,7 +36,7 @@ class ComputeFrequencyDomain {
     static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor,
             ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
 
-        Timer timer = Cashmere.getTimer("GPU", executor, "computeFreq");
+        Timer timer = Cashmere.getTimer("MC", executor, "computeFreq");
         int tevent = timer.start();
 
         Kernel tcKernel = Cashmere.getKernel(flipped ? "toComplexAndFlipKernel" : "toComplexKernel", device);

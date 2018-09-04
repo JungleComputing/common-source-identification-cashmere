@@ -103,7 +103,7 @@ public class ZeroMeanStage extends Stage {
 
     public static void executeMC(Device device, int h, int w, String executor, ExecutorData data) throws CashmereNotAvailable {
 
-        Timer timer = Cashmere.getTimer("GPU", executor, "zeromean");
+        Timer timer = Cashmere.getTimer("MC", executor, "zeromean");
         int event = timer.start();
 
         Kernel verKernel = Cashmere.getKernel("zeromeanVerticallyKernel", device);

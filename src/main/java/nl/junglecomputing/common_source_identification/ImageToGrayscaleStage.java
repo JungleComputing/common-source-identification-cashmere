@@ -16,8 +16,7 @@
 
 package nl.junglecomputing.common_source_identification;
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
+import java.nio.ByteBuffer;
 
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
@@ -29,20 +28,19 @@ import ibis.constellation.Timer;
 
 class ImageToGrayscaleStage extends Stage {
 
-    static float[] execute(BufferedImage image, int h, int w, String executor) {
+    static float[] execute(Buffer image, int h, int w, String executor) {
         Timer timer = Cashmere.getTimer("java", executor, "convert to grayscale");
 
         int event = timer.start();
-        byte[] colors = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+        ByteBuffer buf = image.getByteBuffer();
 
         float[] pixelsFloat = new float[h * w];
 
         for (int i = 0; i < h; i++) {
             for (int j = 0; j < w; j++) {
-                // switch them around, because the byte array is b g r
-                float b = colors[(i * w + j) * 3 + 0] & 0xff;
-                float g = colors[(i * w + j) * 3 + 1] & 0xff;
-                float r = colors[(i * w + j) * 3 + 2] & 0xff;
+                float r = buf.get((i * w + j) * 3 + 0) & 0xff;
+                float g = buf.get((i * w + j) * 3 + 1) & 0xff;
+                float b = buf.get((i * w + j) * 3 + 2) & 0xff;
                 pixelsFloat[i * w + j] = 0.299f * r + 0.587f * g + 0.114f * b;
             }
         }
@@ -55,7 +53,7 @@ class ImageToGrayscaleStage extends Stage {
     static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data)
             throws CashmereNotAvailable {
 
-        Timer timer = Cashmere.getTimer("java", executor, "convert to grayscale");
+        Timer timer = Cashmere.getTimer("MC", executor, "convert to grayscale");
         int event = timer.start();
 
         Kernel kernel = Cashmere.getKernel("grayscaleKernel", device);
