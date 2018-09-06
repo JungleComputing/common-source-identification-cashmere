@@ -53,6 +53,7 @@ import ibis.constellation.util.MemorySizes;
 import ibis.constellation.util.SingleEventCollector;
 import sun.misc.VM;
 
+@SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
@@ -366,7 +367,8 @@ public class CommonSourceIdentification {
                 });
                 Cashmere.initializeLibraries();
             } else {
-                // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer. Ouch. --Ceriel
+                // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer.
+                // We need them for reading JPG. Ouch. --Ceriel
                 try {
                     Class.forName(FFT.class.getName());
                 } catch (ClassNotFoundException e) {
