@@ -16,17 +16,16 @@
 
 package nl.junglecomputing.common_source_identification;
 
-import org.jocl.cl_event;
 import org.jocl.cl_command_queue;
+import org.jocl.cl_event;
 
-import ibis.cashmere.constellation.Argument;
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.cashmere.constellation.LibFunc;
 import ibis.cashmere.constellation.LibFuncLaunch;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Timer;
 
@@ -63,9 +62,8 @@ class WienerStage extends Stage {
     }
 
     /**
-     * This function scales the frequencies in input with a combination of the
-     * global variance and an estimate for the local variance at that position.
-     * Effectively this cleans the input pattern from low frequency noise.
+     * This function scales the frequencies in input with a combination of the global variance and an estimate for the local
+     * variance at that position. Effectively this cleans the input pattern from low frequency noise.
      *
      * @param h
      *            - the image height in pixels
@@ -101,8 +99,7 @@ class WienerStage extends Stage {
      * @param w
      *            - the image width in pixels
      * @param squaredMagnitudes
-     *            - the input array containing the squared frequency values as
-     *            reals
+     *            - the input array containing the squared frequency values as reals
      * @return - a float array containing the estimated minimum local variance
      */
     static float[] computeVarianceEstimates(int h, int w, float[] squaredMagnitudes) {
@@ -118,8 +115,7 @@ class WienerStage extends Stage {
     }
 
     /**
-     * Applies the Wiener Filter to the input pattern on the CPU. This function
-     * is mainly used to check the GPU result.
+     * Applies the Wiener Filter to the input pattern on the CPU. This function is mainly used to check the GPU result.
      *
      * @param input
      *            - the input pattern stored as an 1D float array
@@ -131,55 +127,54 @@ class WienerStage extends Stage {
 
         int event;
 
-	event = timer.start();
+        event = timer.start();
         // convert input to complex values
         float[] complex = Util.toComplex(h, w, input);
         timer.stop(event);
 
         // forward Fourier transform using JTransforms
-	event = fftTimer.start();
+        event = fftTimer.start();
         Util.fft(h, w, complex);
         fftTimer.stop(event);
-	
+
         // compute frequencies squared and store as real
-	event = timer.start();
+        event = timer.start();
         float[] squaredMagnitudes = computeSquaredMagnitudes(h, w, complex);
         timer.stop(event);
 
         // estimate local variances and keep the mimimum
-	event = timer.start();
+        event = timer.start();
         float[] varianceEstimates = computeVarianceEstimates(h, w, squaredMagnitudes);
         timer.stop(event);
 
         // compute global variance, assuming zero mean
         int n = w * h;
-	event = timer.start();
+        event = timer.start();
         float variance = (Util.sum(Util.multiply(input, input)) * n) / (n - 1);
         timer.stop(event);
 
         // scale the frequencies with the global and local variance
-	event = timer.start();
+        event = timer.start();
         float[] frequenciesScaled = scaleWithVariances(h, w, complex, varianceEstimates, variance);
         timer.stop(event);
 
         // inverse Fourier transform
-	event = fftTimer.start();
+        event = fftTimer.start();
         Util.ifft(h, w, frequenciesScaled);
         fftTimer.stop(event);
 
         // convert values to real and return result
-	event = timer.start();
+        event = timer.start();
         float[] result = Util.assign(input, Util.toReal(frequenciesScaled));
         timer.stop(event);
-
 
         return result;
     }
 
-    public static void executeMC(Device device, int h, int w, String executor, ExecutorData data) 
-	throws CashmereNotAvailable, LibFuncNotAvailable {
+    public static void executeMC(Device device, int h, int w, String executor, ExecutorData data)
+            throws CashmereNotAvailable, LibFuncNotAvailable {
 
-	// TODO: leaving this in for Shane
+        // TODO: leaving this in for Shane
         // CTimer timer = cashmere.getTimer("java", executor, "wiener mc");
 
         // int event = timer.start();
@@ -204,8 +199,8 @@ class WienerStage extends Stage {
         // forward fft
         LibFunc fft = Cashmere.getLibFunc("fft", device);
         LibFuncLaunch fftLaunch = fft.createLaunch();
-        fftLaunch.launch((cl_command_queue queue, int num_events_in_wait_list, cl_event[] event_wait_list, cl_event event) ->
-		FFT.performFFT(queue, h, w, data.complex, data.temp2, true, num_events_in_wait_list, event_wait_list, event));
+        fftLaunch.launch((cl_command_queue queue, int num_events_in_wait_list, cl_event[] event_wait_list, cl_event event) -> FFT
+                .performFFT(queue, h, w, data.complex, data.temp2, true, num_events_in_wait_list, event_wait_list, event));
 
         Kernel sqMKernel = Cashmere.getKernel("computeSquaredMagnitudesKernel", device);
         KernelLaunch sqKL = sqMKernel.createLaunch();
@@ -227,8 +222,8 @@ class WienerStage extends Stage {
 
         // inverse Fourier transform
         LibFuncLaunch ifftLaunch = fft.createLaunch();
-        ifftLaunch.launch((cl_command_queue queue, int numEventsWaitList, cl_event[] event_wait_list, cl_event event) ->
-		FFT.performFFT(queue, h, w, data.complex, data.temp2, false, numEventsWaitList, event_wait_list, event));
+        ifftLaunch.launch((cl_command_queue queue, int numEventsWaitList, cl_event[] event_wait_list, cl_event event) -> FFT
+                .performFFT(queue, h, w, data.complex, data.temp2, false, numEventsWaitList, event_wait_list, event));
 
         // convert values to real and return result
 

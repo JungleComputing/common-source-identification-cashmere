@@ -30,12 +30,12 @@ class Correlation implements Serializable {
     double coefficient;
 
     Correlation(int i, int j) {
-	this.i = i;
-	this.j = j;
-	this.coefficient = -1.0;
+        this.i = i;
+        this.j = j;
+        this.coefficient = -1.0;
     }
 
     public String toString() {
-	return String.format("Correlation: (%d,%d): %f\n", i, j, coefficient);
+        return String.format("Correlation: (%d,%d): %f\n", i, j, coefficient);
     }
 }

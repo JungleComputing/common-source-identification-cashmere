@@ -39,6 +39,8 @@ import ibis.constellation.Event;
 
 class ProgressActivity extends Activity {
 
+    private static final long serialVersionUID = 1L;
+
     public static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ProgressActivity");
 
     static final String LABEL = "ProgressActivity";
@@ -65,19 +67,19 @@ class ProgressActivity extends Activity {
                 double ratio = nrReceivedCorrelations / (double) nrCorrelationsToReceive;
                 String message = "Percentage of correlations: " + Math.round(ratio * 100) + "%";
                 if (nrReceivedCorrelations > 0) {
-		    long now = System.currentTimeMillis();
+                    long now = System.currentTimeMillis();
                     long elapsedMillis = now - startMillis;
                     long estimatedMillis = (long) (elapsedMillis / ratio) - elapsedMillis;
                     Duration d = Duration.ofMillis(estimatedMillis);
                     message += ", estimated time: " + format(d);
-		    if (nrReceivedCorrelationsPreviously > 0) {
-			int nrCorrelationsThisPeriod = nrReceivedCorrelations - nrReceivedCorrelationsPreviously;
-			double period = (now - timePreviously) / 1000.0;
-			double throughput = nrCorrelationsThisPeriod / period;
-			message += String.format(", througput: %.2f correlations/s", throughput);
-		    }
-		    nrReceivedCorrelationsPreviously = nrReceivedCorrelations;
-		    timePreviously = now;
+                    if (nrReceivedCorrelationsPreviously > 0) {
+                        int nrCorrelationsThisPeriod = nrReceivedCorrelations - nrReceivedCorrelationsPreviously;
+                        double period = (now - timePreviously) / 1000.0;
+                        double throughput = nrCorrelationsThisPeriod / period;
+                        message += String.format(", througput: %.2f correlations/s", throughput);
+                    }
+                    nrReceivedCorrelationsPreviously = nrReceivedCorrelations;
+                    timePreviously = now;
                 } else {
                     startMillis = System.currentTimeMillis();
                 }
@@ -100,7 +102,7 @@ class ProgressActivity extends Activity {
 
         this.nrCorrelationsToReceive = nrCorrelationsToReceive;
         this.nrReceivedCorrelations = 0;
-	this.nrReceivedCorrelationsPreviously = 0;
+        this.nrReceivedCorrelationsPreviously = 0;
 
         this.timer = new Timer();
         this.startMillis = System.currentTimeMillis();
@@ -122,8 +124,7 @@ class ProgressActivity extends Activity {
         int nrCorrelations = (Integer) event.getData();
         synchronized (timer) {
             if (logger.isDebugEnabled()) {
-                logger.debug("Received notification of {} correlations",
-                        nrCorrelations);
+                logger.debug("Received notification of {} correlations", nrCorrelations);
             }
             nrReceivedCorrelations += nrCorrelations;
         }

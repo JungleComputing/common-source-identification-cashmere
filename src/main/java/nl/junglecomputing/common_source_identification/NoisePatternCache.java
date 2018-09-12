@@ -25,19 +25,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Buffer;
-import ibis.cashmere.constellation.BufferCache;
 import ibis.cashmere.constellation.Device;
 
 /**
- * The NoisePatternCache is a cache for noise patterns that allows threads to lock a specific noise pattern.  The
- * NoisePatternCache keeps track of three types of noise patterns in different memories: - the actual noise patterns, in time
- * domain, kept in the main memory of the node, - noise patterns in the frequency domain, not flipped (regular), kept in the
- * memory of the many-core device - noise patterns in the frequency domain, flipped, kept in the memory of the many-core device
- * 
- * The class is thread safe, but the locking is performed on the granularity of a noise pattern.  Each noise pattern has an
- * index, and we can lock such an index.  We implemented this with a mapping from index to locks for all three variants of noise
- * patterns.  The locks are reentrant read/write locks, to make sure that multiple threads can read the noise pattern, but only
- * one can write it.
+ * The NoisePatternCache is a cache for noise patterns that allows threads to lock a specific noise pattern. The NoisePatternCache
+ * keeps track of three types of noise patterns in different memories: - the actual noise patterns, in time domain, kept in the
+ * main memory of the node, - noise patterns in the frequency domain, not flipped (regular), kept in the memory of the many-core
+ * device - noise patterns in the frequency domain, flipped, kept in the memory of the many-core device
+ *
+ * The class is thread safe, but the locking is performed on the granularity of a noise pattern. Each noise pattern has an index,
+ * and we can lock such an index. We implemented this with a mapping from index to locks for all three variants of noise patterns.
+ * The locks are reentrant read/write locks, to make sure that multiple threads can read the noise pattern, but only one can write
+ * it.
  */
 class NoisePatternCache {
 
@@ -45,6 +44,8 @@ class NoisePatternCache {
 
     // A mapping from index of the noise pattern to a read/write lock
     static class LockMap extends Hashtable<Integer, ReentrantReadWriteLock> {
+
+        private static final long serialVersionUID = 1L;
     };
 
     // noise patterns in frequency domain, regular, with pointers to the device memory
@@ -69,7 +70,6 @@ class NoisePatternCache {
     private static final boolean NO_EVICT = false;
     private static final boolean TIME_DOMAIN_NOISE_PATTERN = true;
 
-
     // package private methods
 
     // initializing
@@ -77,12 +77,16 @@ class NoisePatternCache {
     /**
      * Initialize the noise pattern cache for noise patterns in time and frequency domain.
      *
-     * @param device the <code>Device</code> for the freqeuncy domain noise patterns
-     * @param height the height of the noise patterns
-     * @param width the width of the noise patterns
-     * @param nrNoisePatternsFreq the number of noise patterns in frequency domain 
-     *     (has to be split in two for regular and flipped)
-     * @param nrNoisePatterns the number of noise patterns in time domain
+     * @param device
+     *            the <code>Device</code> for the freqeuncy domain noise patterns
+     * @param height
+     *            the height of the noise patterns
+     * @param width
+     *            the width of the noise patterns
+     * @param nrNoisePatternsFreq
+     *            the number of noise patterns in frequency domain (has to be split in two for regular and flipped)
+     * @param nrNoisePatterns
+     *            the number of noise patterns in time domain
      */
     static void initialize(Device device, int height, int width, int nrNoisePatternsFreq, int nrNoisePatterns) {
         noisePatternsFreqRegular = new Cache<Pointer>("device freq regular");
@@ -95,7 +99,7 @@ class NoisePatternCache {
         flippedLocks = new LockMap();
 
         Buffer[] noisePatternMemory = createNoisePatternMemory(height, width, nrNoisePatterns);
-	// we split the memory of the device into two, for regular and flipped
+        // we split the memory of the device into two, for regular and flipped
         Pointer[] noisePatternFreqRegularMemory = createNoisePatternFreqMemory(device, height, width, nrNoisePatternsFreq / 2);
         Pointer[] noisePatternFreqFlippedMemory = createNoisePatternFreqMemory(device, height, width, nrNoisePatternsFreq / 2);
 
@@ -109,17 +113,19 @@ class NoisePatternCache {
     }
 
     /**
-     * Tries to lock noise pattern index.  If the noise pattern is already in the cache, we obtain a read lock.  If the noise
-     * pattern is not in the cache, we obtain a write lock, unless another thread has the write lock.  In this case we get a
-     * <code>LockException</code>.  If we obtain the write lock, we should produce the noise pattern and put it in the data that
+     * Tries to lock noise pattern index. If the noise pattern is already in the cache, we obtain a read lock. If the noise
+     * pattern is not in the cache, we obtain a write lock, unless another thread has the write lock. In this case we get a
+     * <code>LockException</code>. If we obtain the write lock, we should produce the noise pattern and put it in the data that
      * <code>LockToken</code> points to.
      *
-     * @param index the noise pattern to lock
+     * @param index
+     *            the noise pattern to lock
      * @return a lock token that indicates whether it is a read or write lock and where to put the noise pattern
-     * @exception LockException if the lock cannot be obtained
+     * @exception LockException
+     *                if the lock cannot be obtained
      */
     static LockToken<Buffer> lockNoisePattern(int index) throws LockException {
-	if (logger.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             logger.debug("Trying to lock noise pattern {}", index);
         }
         return lock(index, TIME_DOMAIN_NOISE_PATTERN, noisePatternLocks, noisePatterns);
@@ -128,7 +134,8 @@ class NoisePatternCache {
     /**
      * Unlock noise pattern index.
      *
-     * @param index the noise pattern to unlock
+     * @param index
+     *            the noise pattern to unlock
      */
     static void unlockNoisePattern(int index) {
         if (logger.isDebugEnabled()) {
@@ -138,15 +145,18 @@ class NoisePatternCache {
     }
 
     /**
-     * Tries to lock noise pattern flipped/regular index.  If the noise pattern is already in the cache, we obtain a read lock.
-     * If the noise pattern is not in the cache, we obtain a write lock, unless another thread has the write lock.  In this case
-     * we get a <code>LockException</code>.  If we obtain the write lock, we should produce the noise pattern and put it in the
-     * data that <code>LockToken</code> points to.
+     * Tries to lock noise pattern flipped/regular index. If the noise pattern is already in the cache, we obtain a read lock. If
+     * the noise pattern is not in the cache, we obtain a write lock, unless another thread has the write lock. In this case we
+     * get a <code>LockException</code>. If we obtain the write lock, we should produce the noise pattern and put it in the data
+     * that <code>LockToken</code> points to.
      *
-     * @param index the noise pattern to lock
-     * @param flipped whether we request the flipped or regular noise pattern
+     * @param index
+     *            the noise pattern to lock
+     * @param flipped
+     *            whether we request the flipped or regular noise pattern
      * @return a lock token that indicates whether it is a read or write lock and where to put the noise pattern
-     * @exception LockException if the lock cannot be obtained
+     * @exception LockException
+     *                if the lock cannot be obtained
      */
     static LockToken<Pointer> lockNoisePatternFreq(int index, boolean flipped) throws LockException {
         if (logger.isDebugEnabled()) {
@@ -162,8 +172,10 @@ class NoisePatternCache {
     /**
      * Move a write lock to read lock of noise pattern index flipped.
      *
-     * @param index the noise pattern
-     * @param flipped whether the noise pattern is flipped or regular
+     * @param index
+     *            the noise pattern
+     * @param flipped
+     *            whether the noise pattern is flipped or regular
      */
     static void toReadLockNoisePatternFreq(int index, boolean flipped) {
         if (logger.isDebugEnabled()) {
@@ -179,8 +191,10 @@ class NoisePatternCache {
     /**
      * Unlock noise pattern index flipped and remove it from the cache.
      *
-     * @param index the noise pattern
-     * @param flipped whether the noise pattern is flipped or regular
+     * @param index
+     *            the noise pattern
+     * @param flipped
+     *            whether the noise pattern is flipped or regular
      */
     static void unlockNoisePatternFreqRemove(int index, boolean flipped) {
         if (logger.isDebugEnabled()) {
@@ -196,8 +210,10 @@ class NoisePatternCache {
     /**
      * Unlock the noise pattern index flipped and do not evict it from the cache.
      *
-     * @param index the noise pattern
-     * @param flipped whether the nosie pattern is flipped or not
+     * @param index
+     *            the noise pattern
+     * @param flipped
+     *            whether the nosie pattern is flipped or not
      */
     static void unlockNoisePatternFreq(int index, boolean flipped) {
         if (logger.isDebugEnabled()) {
@@ -213,8 +229,10 @@ class NoisePatternCache {
     /**
      * Set the device of noise pattern index to the given device.
      *
-     * @param index the noise pattern
-     * @param device the device
+     * @param index
+     *            the noise pattern
+     * @param device
+     *            the device
      */
     static void setDevice(int index, Device device) {
         deviceMap.put(index, device);
@@ -227,11 +245,10 @@ class NoisePatternCache {
     static void clear() {
     }
 
-
     // private methods
-    
+
     private static Buffer[] createNoisePatternMemory(int height, int width, int nrNoisePatterns) {
-	int sizeNoisePattern = height * width * 4;
+        int sizeNoisePattern = height * width * 4;
 
         Buffer[] noisePatterns = new Buffer[nrNoisePatterns];
 
@@ -242,8 +259,7 @@ class NoisePatternCache {
         return noisePatterns;
     }
 
-    private static Pointer[] createNoisePatternFreqMemory(Device device, int height,
-            int width, int nrNoisePatterns) {
+    private static Pointer[] createNoisePatternFreqMemory(Device device, int height, int width, int nrNoisePatterns) {
         Pointer[] noisePatterns = new Pointer[nrNoisePatterns];
 
         for (int i = 0; i < noisePatterns.length; i++) {
@@ -252,7 +268,6 @@ class NoisePatternCache {
 
         return noisePatterns;
     }
-
 
     // generic methods
 
@@ -286,7 +301,7 @@ class NoisePatternCache {
      * up without any issues.  We notify to the cache that we locked an item, after which the cache can evict a victim and record
      * that this a recently used noise pattern.  From the cache, we also get a pointer to memory where we can find the noise
      * pattern.
-     * 
+     *
      * pre:
      * - cache is locked
      * - index flipped is in the cache
@@ -328,9 +343,9 @@ class NoisePatternCache {
         return lt;
     }
 
-    /* 
+    /*
      * Helper method to obtain a lock.  If the lock exists, we return it, otherwise we create one.
-     * 
+     *
      * pre:
      * - the cache belonging with this lock is locked
      * post:
@@ -345,7 +360,7 @@ class NoisePatternCache {
         return lock;
     }
 
-    /* 
+    /*
      * Try to obtain a write lock.  From the cache, we try to find an eviction candidate.  The cache may return that there is no
      * victim.  We then to lock the locks of the index we want and possibly the victim.  We do this in a predefined order to
      * ensure that there are no deadlocks possible.  When we successfully locked the index and victim, we notify the cache that
@@ -400,10 +415,10 @@ class NoisePatternCache {
         return victims;
     }
 
-    /* 
+    /*
      * Locks the locks of the item and the victim in a predefined order to circumvent deadlocks.  The unlocking happens in the
      * reversed order.
-     * 
+     *
      * pre:
      * - the cache belonging to locks is locked
      * post:
@@ -423,17 +438,17 @@ class NoisePatternCache {
             if (lt.index < lt.victim) {
                 if (lt.index != -1) {
                     lock1 = lock(lt.index, locks);
-		}
+                }
                 if (lt.victim != -1) {
                     lock2 = lock(lt.victim, locks);
-		}
+                }
             } else {
                 if (lt.victim != -1) {
                     lock1 = lock(lt.victim, locks);
-		}
+                }
                 if (lt.index != -1) {
                     lock2 = lock(lt.index, locks);
-		}
+                }
             }
         } catch (LockException e) {
             if (lt.index < lt.victim) {
@@ -448,7 +463,7 @@ class NoisePatternCache {
         }
     }
 
-    /* 
+    /*
      * pre:
      * - the cache belonging to locks is locked
      * post:
@@ -544,7 +559,7 @@ class NoisePatternCache {
             }
         }
     }
-    
+
     /*
      * Move a write lock to a read lock.
      *

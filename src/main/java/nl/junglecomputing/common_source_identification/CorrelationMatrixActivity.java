@@ -35,6 +35,8 @@ import ibis.constellation.NoSuitableExecutorException;
  */
 class CorrelationMatrixActivity extends Activity {
 
+    private static final long serialVersionUID = 1L;
+
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.CorrelationMatrixActivity");
 
     private ActivityIdentifier parent;

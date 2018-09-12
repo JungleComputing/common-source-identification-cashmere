@@ -20,10 +20,8 @@ import org.jocl.Pointer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibis.constellation.Timer;
-
-import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.CashmereNotAvailable;
+import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 
 class ComputeCorrelation {
@@ -32,14 +30,14 @@ class ComputeCorrelation {
 
     static long timeComputeCorrelations = 0;
 
-    static double correlateMC(int i, int j, Pointer noisePatternI, Pointer noisePatternJ, int h, int w, String executor, 
-	    Device device, ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
+    static double correlateMC(int i, int j, Pointer noisePatternI, Pointer noisePatternJ, int h, int w, String executor,
+            Device device, ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
 
         if (logger.isDebugEnabled()) {
             logger.debug("doing PCE on MC for {} and {}", i, j);
         }
 
-	// reductions are performed with nrBlocksForReduce blocks that in a later stage will be reduced to 1 value
+        // reductions are performed with nrBlocksForReduce blocks that in a later stage will be reduced to 1 value
         int nrBlocksForReduce = 1024;
 
         return PCEStage.executeMC(device, noisePatternI, noisePatternJ, h, w, executor, nrBlocksForReduce, data);

@@ -16,22 +16,19 @@
 
 package nl.junglecomputing.common_source_identification;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
-import java.awt.image.BufferedImage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibis.constellation.Timer;
-
 import ibis.cashmere.constellation.Buffer;
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 
 class ComputeNoisePattern {
@@ -39,18 +36,18 @@ class ComputeNoisePattern {
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ComputeNoisePattern");
 
     static float[] computePRNU(int index, File file, int h, int w, String executor) throws IOException {
-	float[] dxs = new float[h * w];
+        float[] dxs = new float[h * w];
         float[] dys = new float[h * w];
 
-	BufferedImage image = FileToImageStage.execute(file, executor);
-	float[] grayscale = ImageToGrayscaleStage.execute(image, h, w, executor);
-	float[] withoutNoise = FastNoiseStage.execute(h, w, grayscale, executor, dxs, dys);
-	float[] normalized = ZeroMeanStage.execute(h, w, withoutNoise, executor);
-	return WienerStage.execute(h, w, normalized, executor);
+        BufferedImage image = FileToImageStage.execute(file, executor);
+        float[] grayscale = ImageToGrayscaleStage.execute(image, h, w, executor);
+        float[] withoutNoise = FastNoiseStage.execute(h, w, grayscale, executor, dxs, dys);
+        float[] normalized = ZeroMeanStage.execute(h, w, withoutNoise, executor);
+        return WienerStage.execute(h, w, normalized, executor);
     }
 
-    static void computePRNU_MC(int index, File file, int h, int w, String executor, Device device, ExecutorData data) 
-	throws IOException, CashmereNotAvailable, LibFuncNotAvailable {
+    static void computePRNU_MC(int index, File file, int h, int w, String executor, Device device, ExecutorData data)
+            throws IOException, CashmereNotAvailable, LibFuncNotAvailable {
 
         if (logger.isDebugEnabled()) {
             logger.debug("Computing PRNU for {} on mc", index);

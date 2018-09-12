@@ -25,56 +25,53 @@ import java.io.IOException;
 class ComputeCPU {
 
     static void computeCorrelations(Correlations correlations, int h, int w, File[] imageFiles, int startI, int endI, int startJ,
-	    int endJ, String executor) throws IOException {
-	boolean both = startI == startJ;
-	int nrI = endI - startI;
-	int nrJ = endJ - startJ;
+            int endJ, String executor) throws IOException {
+        boolean both = startI == startJ;
 
-	float[][] noisePatternsI;
-	float[][] noisePatternsJ;
+        float[][] noisePatternsI;
+        float[][] noisePatternsJ;
 
-	noisePatternsI = getNoisePatterns(startI, endI, imageFiles, h, w, executor);
+        noisePatternsI = getNoisePatterns(startI, endI, imageFiles, h, w, executor);
 
-	if (both) {
-	    noisePatternsJ = noisePatternsI;
-	} else {
-	    noisePatternsJ = getNoisePatterns(startJ, endJ, imageFiles, h, w, executor);
-	}
+        if (both) {
+            noisePatternsJ = noisePatternsI;
+        } else {
+            noisePatternsJ = getNoisePatterns(startJ, endJ, imageFiles, h, w, executor);
+        }
 
-	if (both) {
-	    for (int i = startI; i < endI; i++) {
-		for (int j = i + 1; j < endJ; j++) {
-		    computeCorrelation(correlations, i, j, noisePatternsI[i - startI], noisePatternsJ[j - startJ], h, w, 
-			    executor);
-		}
-	    }
-	} else {
-	    for (int i = startI; i < endI; i++) {
-		for (int j = startJ; j < endJ; j++) {
-		    computeCorrelation(correlations, i, j, noisePatternsI[i - startI], noisePatternsJ[j - startJ], h, w,
-			    executor);
-		}
-	    }
-	}
+        if (both) {
+            for (int i = startI; i < endI; i++) {
+                for (int j = i + 1; j < endJ; j++) {
+                    computeCorrelation(correlations, i, j, noisePatternsI[i - startI], noisePatternsJ[j - startJ], h, w,
+                            executor);
+                }
+            }
+        } else {
+            for (int i = startI; i < endI; i++) {
+                for (int j = startJ; j < endJ; j++) {
+                    computeCorrelation(correlations, i, j, noisePatternsI[i - startI], noisePatternsJ[j - startJ], h, w,
+                            executor);
+                }
+            }
+        }
     }
 
     static void computeCorrelation(Correlations correlations, int i, int j, float[] x, float[] y, int h, int w, String executor) {
-	Correlation c = new Correlation(i, j);
-	c.coefficient = PCEStage.execute(x, y, h, w, executor);
-	correlations.add(c);
+        Correlation c = new Correlation(i, j);
+        c.coefficient = PCEStage.execute(x, y, h, w, executor);
+        correlations.add(c);
     }
-	    
 
     static float[][] getNoisePatterns(int start, int end, File[] imageFiles, int h, int w, String executor) throws IOException {
-	int nrNoisePatterns = end - start;
+        int nrNoisePatterns = end - start;
 
-	float[][] noisePatterns = new float[nrNoisePatterns][];
-	
-	for (int index = start; index < end; index++) {
-	    int i = index - start;
-	    noisePatterns[i] = ComputeNoisePattern.computePRNU(index, imageFiles[index], h, w, executor);
-	}
-	
-	return noisePatterns;
+        float[][] noisePatterns = new float[nrNoisePatterns][];
+
+        for (int index = start; index < end; index++) {
+            int i = index - start;
+            noisePatterns[i] = ComputeNoisePattern.computePRNU(index, imageFiles[index], h, w, executor);
+        }
+
+        return noisePatterns;
     }
 }

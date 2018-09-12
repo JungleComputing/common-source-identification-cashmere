@@ -38,6 +38,8 @@ import ibis.constellation.NoSuitableExecutorException;
  */
 class CorrelationsNodeActivity extends NodeActivity {
 
+    private static final long serialVersionUID = 1L;
+
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.CorrelationsNodeActivity");
 
     private int threshold;
@@ -50,7 +52,7 @@ class CorrelationsNodeActivity extends NodeActivity {
     CorrelationsNodeActivity(int h, int w, List<String> nodes, int nodeIndex, File[] imageFiles, boolean mc) {
         super(h, w, nodes, nodeIndex, imageFiles, mc);
 
-	// the threshold is defined for this node based on the size of the memory of the device and the number of executors
+        // the threshold is defined for this node based on the size of the memory of the device and the number of executors
         this.threshold = CommonSourceIdentification.thresholdDC;
 
         correlationsActivities = new ArrayList<CorrelationsActivity>();
@@ -85,7 +87,6 @@ class CorrelationsNodeActivity extends NodeActivity {
         }
     }
 
-
     // private methods
 
     private void createCorrelationsActivities() {
@@ -93,7 +94,7 @@ class CorrelationsNodeActivity extends NodeActivity {
 
         createCorrelationsActivitySelf();
 
-	// determing the range of tiles this instance is responsible for and submitting activities for those tiles.
+        // determing the range of tiles this instance is responsible for and submitting activities for those tiles.
         int nrNodes = nodes.size();
         int nrTiles = nrNodes * (nrNodes - 1) / 2;
         int nrTilesPerNode = getNrTilesPerNode(nodeIndex, nrTiles, nrNodes);
@@ -110,8 +111,8 @@ class CorrelationsNodeActivity extends NodeActivity {
 
     // the correlations (startIndex-endIndex, startIndex-endIndex) will be assigned to this node
     private void createCorrelationsActivitySelf() {
-        correlationsActivities.add(new TreeCorrelationsActivity(startIndex, endIndex, startIndex, endIndex, nodeIndex, nodeIndex, 
-			h, w, nodes, imageFiles, mc, 100));
+        correlationsActivities.add(new TreeCorrelationsActivity(startIndex, endIndex, startIndex, endIndex, nodeIndex, nodeIndex,
+                h, w, nodes, imageFiles, mc, 100));
     }
 
     private void createCorrelationsActivity(int tile, int nrNodes) {
@@ -130,11 +131,11 @@ class CorrelationsNodeActivity extends NodeActivity {
         }
 
         if (nrI * nrJ <= threshold * threshold) {
-            correlationsActivities.add(new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ,  h, w, nodes,
-			    imageFiles, mc, 0));
+            correlationsActivities.add(
+                    new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, mc, 0));
         } else {
             correlationsActivities.add(new TreeCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, node1, node2,
-			    h, w, nodes, imageFiles, mc, 0));
+                    h, w, nodes, imageFiles, mc, 0));
         }
     }
 

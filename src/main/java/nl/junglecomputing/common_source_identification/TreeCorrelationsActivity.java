@@ -35,6 +35,8 @@ import ibis.constellation.NoSuitableExecutorException;
  */
 class TreeCorrelationsActivity extends CorrelationsActivity {
 
+    private static final long serialVersionUID = 1L;
+
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.TreeCorrelationsActivity");
     static Logger memlogger = LoggerFactory.getLogger("CommonSourceIdentification.Cache");
 
@@ -46,15 +48,14 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
     static int inFlight = 0;
     static int submitted = 0;
 
-
     TreeCorrelationsActivity(int startI, int endI, int startJ, int endJ, int node1, int node2, int h, int w, List<String> nodes,
             File[] imageFiles, boolean mc, int level) {
         super(startI, endI, startJ, endJ, node1, node2, h, w, nodes, imageFiles, mc, level);
 
-	// Each node has its own threshold based on the size of memory of the many-core device
+        // Each node has its own threshold based on the size of memory of the many-core device
         this.threshold = CommonSourceIdentification.thresholdDC;
 
-	// the hostname of the node that created this 
+        // the hostname of the node that created this
         this.nodeCreatorActivity = CommonSourceIdentification.HOSTNAME;
     }
 
@@ -73,8 +74,8 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
                 node = "everybody";
             }
 
-            logger.debug(String.format("Executing for %s by %s:" + "  (%d-%d), (%d-%d)", node, CommonSourceIdentification.HOSTNAME, startI, 
-			    endI, startJ, endJ));
+            logger.debug(String.format("Executing for %s by %s:" + "  (%d-%d), (%d-%d)", node,
+                    CommonSourceIdentification.HOSTNAME, startI, endI, startJ, endJ));
             if (stolenActivity()) {
                 logger.debug("Executing a stolen activity");
             } else {
@@ -82,16 +83,16 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
             }
         }
 
-	/* The following code splits up the range in the i direction and the range in the j direction based on the threshold.
-	 * There is a nested for loop that will submit the nested CorrelationsActiviities.
-	 */
+        /* The following code splits up the range in the i direction and the range in the j direction based on the threshold.
+         * There is a nested for loop that will submit the nested CorrelationsActiviities.
+         */
 
-	// determining the number of activities for i and j
+        // determining the number of activities for i and j
         int nrActivitiesI = endI - startI;
         int nrActivitiesJ = endJ - startJ;
 
-	// The following code determines the number of iterations of the nested for-loop and the number of activities each
-	// subdivision will contain
+        // The following code determines the number of iterations of the nested for-loop and the number of activities each
+        // subdivision will contain
         int nrIterationsI;
         int nrIterationsJ;
 
@@ -99,7 +100,7 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
         int nrActivitiesPerIterJ;
 
         if (nrActivitiesI / threshold > 2) {
-	    // The case where we can subdivide both ranges in two.  This will lead to a new TreeCorrelationsActivity.
+            // The case where we can subdivide both ranges in two.  This will lead to a new TreeCorrelationsActivity.
             nrIterationsI = nrActivitiesI > threshold ? 2 : 1;
             nrIterationsJ = nrActivitiesJ > threshold ? 2 : 1;
 
@@ -114,8 +115,8 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
             nrIterationsJ = getNrIterations(nrActivitiesJ, threshold);
         }
 
-	// The following nested loop determines the start and end of the ranges and submits new Tree or
-	// LeafCorrelationsActivities.
+        // The following nested loop determines the start and end of the ranges and submits new Tree or
+        // LeafCorrelationsActivities.
         for (int i = 0; i < nrIterationsI; i++) {
             int startIndexI = startI + i * nrActivitiesPerIterI;
             int endIndexI = Math.min(startIndexI + nrActivitiesPerIterI, endI);
@@ -161,9 +162,8 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
         }
     }
 
-    
     // private methods
-    
+
     private boolean stolenActivity() {
         return !CommonSourceIdentification.HOSTNAME.equals(nodeCreatorActivity);
     }
@@ -186,21 +186,21 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
         }
     }
 
-    private void submitActivity(Constellation cons, int startIndexI, int endIndexI, int startIndexJ, int endIndexJ) 
-	throws NoSuitableExecutorException {
-	
+    private void submitActivity(Constellation cons, int startIndexI, int endIndexI, int startIndexJ, int endIndexJ)
+            throws NoSuitableExecutorException {
+
         int nrActivitiesI = endIndexI - startIndexI;
         int nrActivitiesJ = endIndexJ - startIndexJ;
 
         CorrelationsActivity activity;
         String kind;
         if (nrActivitiesI * nrActivitiesJ <= threshold * threshold) {
-	    // the LeafCorrelationsActivitiy will be assigned to this node
-            activity = new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, mc, 
-		    level + 1);
+            // the LeafCorrelationsActivitiy will be assigned to this node
+            activity = new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, mc,
+                    level + 1);
             kind = "Leaf";
         } else {
-	    // we assign the LeafCorrelationsActivitiy to this node to either node1 or node2
+            // we assign the LeafCorrelationsActivitiy to this node to either node1 or node2
             activity = new TreeCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, node1, node2, h, w, nodes,
                     imageFiles, mc, level + 1);
             kind = "Tree";
@@ -209,11 +209,11 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
             }
         }
         activity.setParent(identifier());
-	
+
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("Submitting %s: (%d-%d), (%d-%d)", kind, startIndexI, endIndexI, startIndexJ, endIndexJ));
         }
-	
+
         cons.submit(activity);
     }
 

@@ -29,118 +29,117 @@ class Nodes {
 
     // create an empty linked list
     Nodes() {
-	this.head = null;
-	this.tail = null;
-	this.nodes = new Hashtable<Integer, Node>();
+        this.head = null;
+        this.tail = null;
+        this.nodes = new Hashtable<Integer, Node>();
     }
 
     /* 
      * Add index index to the head.  If the node is not in the list, create a new one.
      */
     void addToHead(int index) {
-	Node node = nodes.get(index);
-	if (node == null) {
-	    addNewNodeToHead(index);
-	} else {
-	    moveExistingNodeToHead(node);
-	}
-	// registered in map and linked list
+        Node node = nodes.get(index);
+        if (node == null) {
+            addNewNodeToHead(index);
+        } else {
+            moveExistingNodeToHead(node);
+        }
+        // registered in map and linked list
     }
 
     // Add a specific node to the head
     void addToHead(Node node) {
-	moveToHead(node);
-	nodes.put(node.index, node);
-	// registered in map and linked list
+        moveToHead(node);
+        nodes.put(node.index, node);
+        // registered in map and linked list
     }
 
     // get the index of the tail
     int getTailIndex() {
-	return tail.index;
+        return tail.index;
     }
 
     // remove an element from the linked list if it is there.
     Node remove(int index) {
-	Node node = nodes.get(index);
-	if (node == null) {
-	    return null;
-	}
-	remove(node);
-	nodes.remove(index);
+        Node node = nodes.get(index);
+        if (node == null) {
+            return null;
+        }
+        remove(node);
+        nodes.remove(index);
 
-	return node;
-	// registered in map and linked list
+        return node;
+        // registered in map and linked list
     }
 
     // return the number of items in the linked list
     int size() {
-	return nodes.size();
+        return nodes.size();
     }
-
 
     // private methods
 
     private void addNewNodeToHead(int index) {
-	Node node = new Node(index);
-    	nodes.put(index, node);
-    	moveToHead(node);
+        Node node = new Node(index);
+        nodes.put(index, node);
+        moveToHead(node);
     }
 
     private void moveToHead(Node node) {
-    	// assumes that node.previous and node.next can be overwritten
-    	// assumes that no other nodes are pointing to this node
-    	node.next = head;
-    	node.previous = null;
-    	if (head == null) {
-    	    tail = node;
-    	} else {
-    	    head.previous = node;
-    	}
-    	head = node;
+        // assumes that node.previous and node.next can be overwritten
+        // assumes that no other nodes are pointing to this node
+        node.next = head;
+        node.previous = null;
+        if (head == null) {
+            tail = node;
+        } else {
+            head.previous = node;
+        }
+        head = node;
     }
 
     private void moveExistingNodeToHead(Node node) {
-	remove(node);
-	moveToHead(node);
+        remove(node);
+        moveToHead(node);
     }
 
     private void remove(Node node) {
-	if (node == head) {
-	    removeHead();
-	} else if (node == tail) {
-	    tail = node.previous;
-	    tail.next = null;
-	} else {
-	    node.previous.next = node.next;
-	    node.next.previous = node.previous;
-	}
-	node.next = null;
-	node.previous = null;
+        if (node == head) {
+            removeHead();
+        } else if (node == tail) {
+            tail = node.previous;
+            tail.next = null;
+        } else {
+            node.previous.next = node.next;
+            node.next.previous = node.previous;
+        }
+        node.next = null;
+        node.previous = null;
     }
 
     private void removeHead() {
-	if (head.next == null) {
-	    head = null;
-	    tail = null;
-	} else {
-	    head.next.previous = null;
-	    head = head.next;
-	}
+        if (head.next == null) {
+            head = null;
+            tail = null;
+        } else {
+            head.next.previous = null;
+            head = head.next;
+        }
     }
 
     @Override
     public String toString() {
-	Node next = head;
-	StringBuilder sb = new StringBuilder("[");
-	while (next != null) {
-	    sb.append(next);
-	    if (next.next != null) {
-		sb.append(", ");
-	    }
-	    next = next.next;
-	}
-	sb.append("]\n");
-	sb.append(nodes);
-	return sb.toString();
+        Node next = head;
+        StringBuilder sb = new StringBuilder("[");
+        while (next != null) {
+            sb.append(next);
+            if (next.next != null) {
+                sb.append(", ");
+            }
+            next = next.next;
+        }
+        sb.append("]\n");
+        sb.append(nodes);
+        return sb.toString();
     }
 }

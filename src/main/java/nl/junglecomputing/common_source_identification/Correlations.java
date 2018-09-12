@@ -19,4 +19,6 @@ package nl.junglecomputing.common_source_identification;
 import java.util.ArrayList;
 
 class Correlations extends ArrayList<Correlation> {
+
+    private static final long serialVersionUID = 1L;
 }

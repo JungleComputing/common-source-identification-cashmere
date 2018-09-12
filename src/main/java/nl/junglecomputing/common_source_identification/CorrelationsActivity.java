@@ -29,6 +29,8 @@ import ibis.constellation.Context;
 // The base class for Leaf- and TreeCorrelationsActivity
 abstract class CorrelationsActivity extends Activity {
 
+    private static final long serialVersionUID = 1L;
+
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.CorrelationsActivity");
 
     // Constellation logic
@@ -59,17 +61,17 @@ abstract class CorrelationsActivity extends Activity {
     protected int nrReceivedCorrelations;
     protected int nrCorrelationsToReceive;
 
-    CorrelationsActivity(int startI, int endI, int startJ, int endJ, int node1, int node2, int h, int w, List<String> nodes, 
-	    File[] imageFiles, boolean mc, int level) {
-	/* 
-	 * The images are subdivided over the nodes, for example, 0-25 to node A, 25-50 to B, 50-75 to C, and 75-100 to D.  The
-	 * correlations (0-25, 0-25) will be assigned to node A, (25-50, 25-50) to B, etc.  Then the correlations (0-25, 25-50)
-	 * could run efficiently on A and B since the images will likely to be there because of (0-25, 0-25) and (25-50, 25-50).
-	 * 
-	 * We could make sure that (0-25, 25-50) can only run on A and B, but for load-balancing purposes it is better to assign
-	 * them to any node.  However, we do make sure that CorrelationsActivities with the same range in the i and j direction,
-	 * so for example (0-25,0-25) gets assigned to a specific node.  We arrange that in the call to super() below:
-	 */
+    CorrelationsActivity(int startI, int endI, int startJ, int endJ, int node1, int node2, int h, int w, List<String> nodes,
+            File[] imageFiles, boolean mc, int level) {
+        /*
+         * The images are subdivided over the nodes, for example, 0-25 to node A, 25-50 to B, 50-75 to C, and 75-100 to D.  The
+         * correlations (0-25, 0-25) will be assigned to node A, (25-50, 25-50) to B, etc.  Then the correlations (0-25, 25-50)
+         * could run efficiently on A and B since the images will likely to be there because of (0-25, 0-25) and (25-50, 25-50).
+         *
+         * We could make sure that (0-25, 25-50) can only run on A and B, but for load-balancing purposes it is better to assign
+         * them to any node.  However, we do make sure that CorrelationsActivities with the same range in the i and j direction,
+         * so for example (0-25,0-25) gets assigned to a specific node.  We arrange that in the call to super() below:
+         */
         super(node1 == node2 ? new Context(nodes.get(node1) + LABEL, level) : new Context(LABEL, level), true);
 
         this.mc = mc;
@@ -90,7 +92,7 @@ abstract class CorrelationsActivity extends Activity {
 
         this.h = h;
         this.w = w;
-	
+
         this.correlations = new Correlations();
         this.nrReceivedCorrelations = 0;
         this.nrCorrelationsToReceive = 0;

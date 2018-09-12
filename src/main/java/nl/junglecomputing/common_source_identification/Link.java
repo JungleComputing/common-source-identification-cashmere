@@ -17,14 +17,14 @@
 package nl.junglecomputing.common_source_identification;
 
 class Link {
-    int n1,n2;
+    int n1, n2;
     double dist;
     int size;
+
     Link(int n1, int n2, double dist, int size) {
-	this.n1 = n1;
-	this.n2 = n2;
-	this.dist = dist;
-	this.size = size;
+        this.n1 = n1;
+        this.n2 = n2;
+        this.dist = dist;
+        this.size = size;
     }
 }
-

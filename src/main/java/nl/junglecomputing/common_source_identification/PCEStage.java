@@ -17,22 +17,19 @@
 package nl.junglecomputing.common_source_identification;
 
 import org.jocl.Pointer;
-import org.jocl.cl_context;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_event;
 
-import ibis.constellation.Timer;
-
-import ibis.cashmere.constellation.Argument;
 import ibis.cashmere.constellation.Buffer;
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.cashmere.constellation.LibFunc;
 import ibis.cashmere.constellation.LibFuncLaunch;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
+import ibis.constellation.Timer;
 
 /*
  * In this stage we compute the Peak-To-Correlation Energy of two noise patterns in the time domain
@@ -81,8 +78,7 @@ class PCEStage extends Stage {
         timer.stop(event);
 
         event = timer.start();
-        double energy = energyFixed(h, w, crossCorrelation, SQUARE_SIZE, indexX,
-                indexY);
+        double energy = energyFixed(h, w, crossCorrelation, SQUARE_SIZE, indexX, indexY);
         double absPce = (peak * peak) / energy;
 
         timer.stop(event);
@@ -153,7 +149,7 @@ class PCEStage extends Stage {
         for (int row = 0; row < h; row++) {
             boolean peakRow = row > peakIndexY - radius && row < peakIndexY + radius;
             for (int col = 0; col < w; col++) {
-                if (peakRow && col > peakIndexX - radius  && col < peakIndexX + radius) {
+                if (peakRow && col > peakIndexX - radius && col < peakIndexX + radius) {
                     continue;
                 } else {
                     float f = crossCorrelation[row * w * 2 + col * 2];
@@ -165,7 +161,7 @@ class PCEStage extends Stage {
     }
 
     static double executeMC(Device device, Pointer x, Pointer y, int h, int w, String executor, int nrBlocksForReduce,
-	    ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
+            ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
 
         float[] peak = new float[1];
         int nrBlocksFindPeak = nrBlocksForReduce;
@@ -198,16 +194,16 @@ class PCEStage extends Stage {
         KernelLaunch sdKL = sdKernel.createLaunch();
         MCL.launchCrossCorrelateKernel(ccKL, h * w, data.crossCorrelation, false, x, false, y, false); // 3.6ms
 
-        ifftLaunch.launch((cl_command_queue queue, int num_events_in_wait_list, cl_event[] event_wait_list, cl_event event) ->
-		    FFT.performFFT(queue, h, w, data.crossCorrelation, data.temp, false, num_events_in_wait_list, 
-			    event_wait_list, event));
-	
+        ifftLaunch.launch((cl_command_queue queue, int num_events_in_wait_list, cl_event[] event_wait_list, cl_event event) -> FFT
+                .performFFT(queue, h, w, data.crossCorrelation, data.temp, false, num_events_in_wait_list, event_wait_list,
+                        event));
+
         MCL.launchFindPeakKernel(fpKL, nrBlocksFindPeak, h * w, data.peak, false, data.tempPeaks, false, data.indicesPeak, false,
                 data.crossCorrelation, false); // 5.2 ms
-        MCL.launchMaxLocFloatsKernel(mlfKL, nrBlocksFindPeak, data.dummyPeak, false, data.indexPeak, false, data.tempPeaks,
-		false, data.indicesPeak, false); // 5.2 ms
-        MCL.launchComputeEnergyKernel(ceKL, nrBlocksEnergy, h, w, data.tempEnergy, false, data.indexPeak, false, 
-		data.crossCorrelation, false); // 6.6 ms
+        MCL.launchMaxLocFloatsKernel(mlfKL, nrBlocksFindPeak, data.dummyPeak, false, data.indexPeak, false, data.tempPeaks, false,
+                data.indicesPeak, false); // 5.2 ms
+        MCL.launchComputeEnergyKernel(ceKL, nrBlocksEnergy, h, w, data.tempEnergy, false, data.indexPeak, false,
+                data.crossCorrelation, false); // 6.6 ms
         MCL.launchSumDoublesKernel(sdKL, nrBlocksEnergy, data.energy, false, data.tempEnergy, false);
 
         device.get(energy, data.energy);
@@ -220,8 +216,8 @@ class PCEStage extends Stage {
 
     static void print(Buffer buffer, String filename) {
         try {
-            java.io.PrintStream ps = new java.io.PrintStream(new java.io.BufferedOutputStream(
-			    new java.io.FileOutputStream(filename)));
+            java.io.PrintStream ps = new java.io.PrintStream(
+                    new java.io.BufferedOutputStream(new java.io.FileOutputStream(filename)));
             for (int i = 0; i < buffer.capacity() / 4; i++) {
                 ps.println(buffer.getFloat(i));
             }

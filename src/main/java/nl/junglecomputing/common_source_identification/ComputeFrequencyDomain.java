@@ -20,22 +20,20 @@ import org.jocl.Pointer;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_event;
 
-import ibis.constellation.Timer;
-
 import ibis.cashmere.constellation.Argument;
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.cashmere.constellation.LibFunc;
 import ibis.cashmere.constellation.LibFuncLaunch;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 
 class ComputeFrequencyDomain {
 
-    static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor, 
-	    ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
+    static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor,
+            ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
 
         Kernel tcKernel = Cashmere.getKernel(flipped ? "toComplexAndFlipKernel" : "toComplexKernel", device);
         KernelLaunch tcKL = tcKernel.createLaunch();
@@ -54,7 +52,7 @@ class ComputeFrequencyDomain {
             MCL.launchToComplexKernel(tcKL, h * w, noisePatternFreq, false, data.noisePattern, false);
         }
 
-        fftLaunch.launch((cl_command_queue queue, int numEventsWaitList, cl_event[] event_wait_list, cl_event event) -> 
-		FFT.performFFT(queue, h, w, noisePatternFreq, data.temp2, true, numEventsWaitList, event_wait_list, event));
+        fftLaunch.launch((cl_command_queue queue, int numEventsWaitList, cl_event[] event_wait_list, cl_event event) -> FFT
+                .performFFT(queue, h, w, noisePatternFreq, data.temp2, true, numEventsWaitList, event_wait_list, event));
     }
 }

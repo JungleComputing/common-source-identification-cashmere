@@ -23,12 +23,12 @@ class Node {
     int index;
 
     Node(int index) {
-	this.previous = null;
-	this.next = null;
-	this.index = index;
+        this.previous = null;
+        this.next = null;
+        this.index = index;
     }
 
     public String toString() {
-	return "" + index;
+        return "" + index;
     }
 }

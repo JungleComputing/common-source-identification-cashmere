@@ -64,10 +64,8 @@ class ExecutorData {
      * The amount of device memory that an executor thread needs.
      */
     static long memoryForKernelExecutionThread(int h, int w, int nrBlocksForReduce) {
-        return h * w * Sizeof.cl_float * 6L
-                + nrBlocksForReduce * Sizeof.cl_double
-                + nrBlocksForReduce * Sizeof.cl_float + (long) Sizeof.cl_int * 5
-                + h * w * 3;
+        return h * w * Sizeof.cl_float * 6L + nrBlocksForReduce * Sizeof.cl_double + nrBlocksForReduce * Sizeof.cl_float
+                + (long) Sizeof.cl_int * 5 + h * w * 3;
     }
 
     private Device device;
@@ -149,10 +147,8 @@ class ExecutorData {
         memHWComplex1 = device.allocate(h * w * 2 * Sizeof.cl_float);
         memHWComplex2 = device.allocate(h * w * 2 * Sizeof.cl_float);
 
-        memDoubleNrBlocksForReduce = device
-                .allocate(nrBlocksForReduce * Sizeof.cl_double);
-        memIntNrBlocksForReduce = device
-                .allocate(nrBlocksForReduce * Sizeof.cl_float);
+        memDoubleNrBlocksForReduce = device.allocate(nrBlocksForReduce * Sizeof.cl_double);
+        memIntNrBlocksForReduce = device.allocate(nrBlocksForReduce * Sizeof.cl_float);
 
         memInt1 = device.allocate(Sizeof.cl_int);
         memFloat1 = device.allocate(Sizeof.cl_float);

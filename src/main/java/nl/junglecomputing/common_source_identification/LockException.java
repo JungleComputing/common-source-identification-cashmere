@@ -16,19 +16,20 @@
 
 package nl.junglecomputing.common_source_identification;
 
-/* 
+/*
  * An exception that indicates that we failed to lock a lock.  It also indicates whether a read or write lock failed.
  */
 class LockException extends Exception {
 
+    private static final long serialVersionUID = 1L;
+
     boolean write;
 
     LockException(boolean write) {
-	this.write = write;
+        this.write = write;
     }
 
-
     LockException() {
-	this(true);
+        this(true);
     }
 }

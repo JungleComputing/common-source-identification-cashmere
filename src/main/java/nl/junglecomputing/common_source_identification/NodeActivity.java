@@ -28,6 +28,8 @@ import ibis.constellation.Context;
 
 abstract class NodeActivity extends Activity {
 
+    private static final long serialVersionUID = 1L;
+
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.NodeActivity");
 
     static final String LABEL = "NodeActivity";

@@ -21,4 +21,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import ibis.cashmere.constellation.Device;
 
 class DeviceMap extends ConcurrentHashMap<Integer, Device> {
+
+    private static final long serialVersionUID = 1L;
 }

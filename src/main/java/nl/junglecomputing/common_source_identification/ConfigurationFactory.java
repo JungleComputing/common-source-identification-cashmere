@@ -35,23 +35,23 @@ class ConfigurationFactory {
         configurations = new ArrayList<ConstellationConfiguration>();
     }
 
-    void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, AbstractContext context, 
-	    StealStrategy localStrategy, StealStrategy remoteStrategy) {
+    void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, AbstractContext context,
+            StealStrategy localStrategy, StealStrategy remoteStrategy) {
 
         for (int i = 0; i < nrExecutors; i++) {
             configurations.add(new ConstellationConfiguration(context, myPool, stealsFrom, localStrategy, StealStrategy.SMALLEST,
-			    remoteStrategy));
+                    remoteStrategy));
         }
     }
 
-    void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context, 
-	    StealStrategy localStrategy, StealStrategy remoteStrategy) {
+    void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context,
+            StealStrategy localStrategy, StealStrategy remoteStrategy) {
         createConfigurations(nrExecutors, myPool, stealsFrom, new Context(context), localStrategy, remoteStrategy);
     }
 
     void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context) {
-        createConfigurations(nrExecutors, myPool, stealsFrom, new Context(context), 
-		StealStrategy.SMALLEST, StealStrategy.SMALLEST);
+        createConfigurations(nrExecutors, myPool, stealsFrom, new Context(context), StealStrategy.SMALLEST,
+                StealStrategy.SMALLEST);
     }
 
     ConstellationConfiguration[] getConfigurations() {

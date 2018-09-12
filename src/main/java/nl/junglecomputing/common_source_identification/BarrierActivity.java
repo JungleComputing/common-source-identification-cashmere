@@ -31,6 +31,8 @@ import ibis.constellation.Event;
  */
 class BarrierActivity extends Activity {
 
+    private static final long serialVersionUID = 1L;
+
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.BarrierActivity");
 
     static final String LABEL = "BarrierActivity";
@@ -40,7 +42,7 @@ class BarrierActivity extends Activity {
         super(new Context(node + BarrierActivity.LABEL), true, false);
     }
 
-    /* 
+    /*
      * Waits until parent is set and then finishes.
      */
     @Override

@@ -16,11 +16,11 @@
 
 package nl.junglecomputing.common_source_identification;
 
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.constellation.Timer;
 
 /*
@@ -29,10 +29,9 @@ import ibis.constellation.Timer;
 public class ZeroMeanStage extends Stage {
 
     /**
-     * Applies an in place zero mean filtering operation to each column in an
-     * image. First two mean values are computed, one for even and one for odd
-     * elements, for each column in the image. Then, the corresponding mean
-     * value is subtracted from each pixel value in the image.
+     * Applies an in place zero mean filtering operation to each column in an image. First two mean values are computed, one for
+     * even and one for odd elements, for each column in the image. Then, the corresponding mean value is subtracted from each
+     * pixel value in the image.
      *
      * @param h
      *            - the image height in pixels
@@ -72,8 +71,8 @@ public class ZeroMeanStage extends Stage {
     }
 
     /**
-     * Applies the Zero Mean Total filter on the CPU. This routine is mainly
-     * here for comparing the result and performance with the GPU version.
+     * Applies the Zero Mean Total filter on the CPU. This routine is mainly here for comparing the result and performance with
+     * the GPU version.
      *
      * @param input
      *            - the image stored as a 1D array of float values
@@ -82,7 +81,7 @@ public class ZeroMeanStage extends Stage {
     public static float[] execute(int h, int w, float[] input, String executor) {
         Timer timer = Cashmere.getTimer("java", executor, "zeromean");
         int event;
-	
+
         event = timer.start();
         computeMeanVertically(h, w, input);
         timer.stop(event);
@@ -90,11 +89,11 @@ public class ZeroMeanStage extends Stage {
         event = timer.start();
         float[] inputTransposed = Util.transpose(h, w, input);
         timer.stop(event);
-	
+
         event = timer.start();
         computeMeanVertically(w, h, inputTransposed);
         timer.stop(event);
-	
+
         event = timer.start();
         float[] output = Util.transpose(w, h, inputTransposed);
         timer.stop(event);
@@ -104,7 +103,7 @@ public class ZeroMeanStage extends Stage {
 
     public static void executeMC(Device device, int h, int w, String executor, ExecutorData data) throws CashmereNotAvailable {
 
-	// TODO: leaving this in for Shane
+        // TODO: leaving this in for Shane
         // CTimer timer = cashmere.getTimer("java", executor, "zeromean mc");
         // int event = timer.start();
 

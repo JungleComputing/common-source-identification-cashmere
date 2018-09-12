@@ -38,8 +38,7 @@ class FileToImageStage extends Stage {
         synchronized (FileToImageStage.class) {
             image = ImageIO.read(new BufferedInputStream(fileInputStream));
         }
-        if ((image != null) && (image.getWidth() >= 0)
-                && (image.getHeight() >= 0)) {
+        if ((image != null) && (image.getWidth() >= 0) && (image.getHeight() >= 0)) {
             return image;
         }
         return null;
