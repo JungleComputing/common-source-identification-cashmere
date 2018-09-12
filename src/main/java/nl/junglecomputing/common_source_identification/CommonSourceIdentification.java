@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.jocl.CL;
 import org.jocl.CLException;
@@ -67,19 +69,128 @@ public class CommonSourceIdentification {
     // simple class to return the height and width of the images that we are
     // correlating.
     static class ImageDims {
-        int height;
-        int width;
+        final int height;
+        final int width;
 
         ImageDims(File imageFile) throws IOException {
             BufferedImage image = FileToImageStage.readImage(imageFile);
             height = image.getHeight();
             width = image.getWidth();
         }
+
+        ImageDims(int height, int width) {
+            this.height = height;
+            this.width = width;
+        }
+
+	@Override
+	public boolean equals(Object other) {
+	    boolean result = false;
+	    if (other instanceof ImageDims) {
+		ImageDims that = (ImageDims) other;
+		result = that.canEqual(this) &&
+		    that.height == this.height &&
+		    that.width == this.width;
+	    }
+	    return result;
+	}
+
+	@Override
+	public int hashCode() {
+	    return java.util.Objects.hash(height, width);
+	}
+
+	public boolean canEqual(Object other) {
+	    return (other instanceof ImageDims);
+	}
+    }
+
+    static final Map<ImageDims, Long> FFT_FLOPS_FORWARD = createFFTFlopsMap(true);
+    static final Map<ImageDims, Long> FFT_FLOPS_BACKWARD = createFFTFlopsMap(false);
+
+    // Ceriel, I propose to use an enum for the version, but maybe you want to combine the flags, mc + cached or something?
+    enum Version {
+	CPU, MC, USE_CACHE
     }
 
     /*
      * Functions for images and results
      */
+    static Map<ImageDims, Long> createFFTFlopsMap(boolean forward) {
+	HashMap<ImageDims, Long> map = new HashMap<ImageDims, Long>();
+	if (forward) {
+	    map.put(new ImageDims(3000,4000), 2351000000l);
+	}
+	else {
+	    map.put(new ImageDims(3000,4000), 2352800000l);
+	}
+	return map;
+    }
+
+    static long nrFlopsGrayscale(int h, int w) {
+	return 5 * h * w;
+    }
+
+    static long nrFlopsFastNoise(int h, int w) {
+	return 2 * 3 * h * w;
+    }
+
+    static long nrFlopsZeroMean(int h, int w) {
+	return 2 * (h * w * 2 + 2 * w);
+    }
+
+    static long nrFlopsWiener(int h, int w, long flopsForwardFFT, long flopsBackwardFFT) {
+	return flopsForwardFFT +
+	    h * w * 3 +
+	    h * w * 176 +
+	    (h * w * 3 + 2) +
+	    h * w * 4 +
+	    flopsBackwardFFT;
+    }
+
+    static long nrFlopsPRNU(int h, int w, long flopsForwardFFT, long flopsBackwardFFT) {
+	return nrFlopsGrayscale(h, w) +
+	    nrFlopsFastNoise(h, w) +
+	    nrFlopsZeroMean(h, w) +
+	    nrFlopsWiener(h, w, flopsForwardFFT, flopsBackwardFFT);
+    }
+
+    static long nrFlopsPCELinear(int h, int w, long flopsForwardFFT, long flopsBackwardFFT) {
+	return flopsForwardFFT * 2;
+    }
+
+    static long nrFlopsPCEQuadratic(int h, int w, long flopsForwardFFT, long flopsBackwardFFT) {
+	return h * w * 6 +
+	    flopsBackwardFFT +
+	    h * w +
+	    (h - 11) * (h - 11) * 2 + 2;
+    }
+    
+    static long nrFlops(int h, int w, int n, int nrNoisePatternsComputed, 
+	    int nrNoisePatternFreqTransforms) {
+	ImageDims imageDims = new ImageDims(h, w);
+	long flopsForwardFFT = FFT_FLOPS_FORWARD.get(imageDims);
+	long flopsBackwardFFT = FFT_FLOPS_BACKWARD.get(imageDims);
+
+	long flopsPRNU = nrFlopsPRNU(h, w, flopsForwardFFT, flopsBackwardFFT);
+	long flopsPCELinear = nrFlopsPCELinear(h, w, flopsForwardFFT, flopsBackwardFFT);
+	long flopsPCEQuadratic = nrFlopsPCEQuadratic(h, w, flopsForwardFFT, flopsBackwardFFT);
+
+	return nrNoisePatternsComputed * flopsPRNU +
+	    nrNoisePatternFreqTransforms * flopsPCELinear +
+	    ((n * (n - 1)) / 2) * flopsPCEQuadratic;
+    }
+
+    static void printGFLOPS(int h, int w, int n, int nrNoisePatternsComputed, int nrNoisePatternFreqTransforms, long timeNanos) {
+	long nrFlopsAchieved = nrFlops(h, w, n, nrNoisePatternsComputed, nrNoisePatternFreqTransforms);
+	long nrFlopsActual = nrFlops(h, w, n, n, n);
+	double timeSeconds = timeNanos / 1e9;
+	
+	System.out.printf("achieved performance (counting everything computed): %.2f GFLOPS\n", nrFlopsAchieved / timeSeconds / 1e9);
+	System.out.printf("actual performance (counting only what should be computed): %.2f GFLOPS\n", nrFlopsActual / timeSeconds / 1e9);
+    }
+
+    
     static ImageDims getImageDims(File imageFile) throws IOException {
         return new ImageDims(imageFile);
     }
@@ -297,6 +408,7 @@ public class CommonSourceIdentification {
         int nrNodes = 1;
         boolean runOnMc = false;
         boolean useCache = false;
+	Version version = Version.MC;
 
         String nt = System.getProperty("ibis.pool.size");
         if (nt != null) {
@@ -316,10 +428,13 @@ public class CommonSourceIdentification {
                 nameImageDir = args[i];
             } else if (args[i].equals("-mc")) {
                 runOnMc = true;
+		version = Version.MC;
             } else if (args[i].equals("-useCache")) {
                 useCache = true;
+		version = Version.USE_CACHE;
             } else if (args[i].equals("-cpu")) {
                 runOnMc = false;
+		version = Version.CPU;
             } else {
                 throw new Error("Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu | -mc ]");
             }
@@ -408,8 +523,25 @@ public class CommonSourceIdentification {
 
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
+		int n = imageFiles.length;
+		int nrNoisePatternsComputed = n;
+		int nrNoisePatternsTransformed = n;
+		switch (version) {
+		case CPU:
+		case MC:
+		    nrNoisePatternsComputed = (n * (n - 1)) / 2;
+		    nrNoisePatternsTransformed = (n * (n - 1)) / 2;
+		    break;
+		case USE_CACHE:
+		    nrNoisePatternsComputed = (n * (n - 1)) / 2;
+		    nrNoisePatternsTransformed = nrNoisePatternsTransformed;
+		    // TODO: figure out the number of computed and transformed noise patterns
+		    break;
+		}
+		printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed, timeNanos);
+			
 
-                // we wait for the progress activit to stop
+                // we wait for the progress activity to stop
                 sec.waitForEvent();
 
                 // printTimings(nodes, timer.totalTimeVal());
