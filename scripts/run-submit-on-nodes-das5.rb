@@ -23,10 +23,12 @@ NODE_MAP = {
 
 	
 $nrNodes = 0
+$gpuSelection = ""
 
 def finishGetNodes(node, selected_nodes)
   unless "#{node}" == "regular"
     $nodes += ["#{node}*#{selected_nodes.length}"]
+    $gpuSelection = "#SBATCH --gres=gpu"
   end
   $nrNodes += selected_nodes.length;
 end

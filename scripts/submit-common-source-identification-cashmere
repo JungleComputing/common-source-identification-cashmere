@@ -21,7 +21,7 @@ source $BIN_DIR/check_environment_variable.bash
 
 source $BIN_DIR/run-submit-common-source-identification.bash
 
-ruby $BIN_DIR/run-on-nodes.das5.rb \
+ruby $BIN_DIR/submit-on-nodes.das5 \
      $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR \
      lib/common-source-identification-cashmere.jar \
      "${extra_args[@]}" \
