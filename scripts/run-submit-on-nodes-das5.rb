@@ -25,7 +25,7 @@ NODE_MAP = {
 $nrNodes = 0
 
 def finishGetNodes(node, selected_nodes)
-  unless #{node} == "regular"
+  unless "#{node}" == "regular"
     $nodes += ["#{node}*#{selected_nodes.length}"]
   end
   $nrNodes += selected_nodes.length;
@@ -43,7 +43,11 @@ NODES_NOT_AVAILABLE = `preserve -llist | tail -n +4 | awk 'BEGIN { FS="\\t"; x =
 
 
 def build_constraints
-  "-native '--gres=gpu -C [#{$nodes.join("&")}]'"
+  if $nodes.length > 0
+    "-native '--gres=gpu -C [#{$nodes.join("&")}]'"
+  else
+    ""
+  end
 end
 
 require("#{$bin_dir}/run-submit-on-nodes.rb")
