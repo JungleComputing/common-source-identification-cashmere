@@ -19,11 +19,12 @@ check_env_dir COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR
 BIN_DIR=$COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR/bin
 source $BIN_DIR/check_environment_variable.bash
 
+# For version specific configuration see the following file:
 source $BIN_DIR/run-submit-common-source-identification.bash
 
-ruby $BIN_DIR/submit-on-nodes.das5 \
+ruby $BIN_DIR/submit-on-nodes.das5.rb \
      $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR \
      lib/common-source-identification-cashmere.jar \
-     "${extra_args[@]}" \
      nl.junglecomputing.common_source_identification.CommonSourceIdentification \
+     "$config_args" \
      "$@"

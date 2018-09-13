@@ -25,7 +25,7 @@ open(filename, 'w') do |f|
     "-Dibis.implementation=smartsockets " +
     "-Dibis.constellation.closed=true " +
     "-Dibis.pool.size=#{$nrNodes} -Dibis.server.port=#{$port} " +
-    "-Dibis.pool.name=das5.#{$$} #{$className} #{$rest.join(" ")}\n"
+    "-Dibis.pool.name=das5.#{$$} #{$configargs} #{$classname} #{$rest.join(" ")}\n"
 end
 
 command = "sbatch #{filename}"

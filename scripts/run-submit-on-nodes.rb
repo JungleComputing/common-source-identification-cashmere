@@ -88,15 +88,18 @@ $node_specs.each do |a|
     end
 end
 
+
+
 basedir = other_args[0]
 jar = other_args[1]
 $classname = other_args[2]
-if other_args.length > 3 && other_args[3].split("=")[0] == "--time"
-  $time = other_args[3].split("=")[1]
-  $rest = other_args[4..-1]
+$configargs = other_args[3].split(",").join(" ")
+if other_args.length > 4 && other_args[4].split("=")[0] == "--time"
+  $time = other_args[4].split("=")[1]
+  $rest = other_args[5..-1]
 else
   $time = "00:15:00"
-  $rest = other_args[3..-1]
+  $rest = other_args[4..-1]
 end
 
 $classpath = `#{$bin_dir}/create-class-path #{basedir} #{jar}`.chomp
