@@ -11,7 +11,7 @@ then
 elif echo "$@" | grep -q -- "-mc"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
-elif echo "$a" | grep -q -- "-useCache"
+elif echo "$@" | grep -q -- "-useCache"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
 else
