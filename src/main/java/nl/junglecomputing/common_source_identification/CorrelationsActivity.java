@@ -16,6 +16,7 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 
+
 public class CorrelationsActivity extends Activity {
 
     private static final long serialVersionUID = 1L;

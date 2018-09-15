@@ -17,7 +17,8 @@
 package nl.junglecomputing.common_source_identification;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 import org.jocl.Pointer;
 import org.jocl.Sizeof;
@@ -34,7 +35,7 @@ import ibis.constellation.Constellation;
  */
 class ExecutorData {
 
-    private static Hashtable<Constellation, ExecutorData> executorDataMap = new Hashtable<Constellation, ExecutorData>();
+    private static Map<Constellation, ExecutorData> executorDataMap = new IdentityHashMap<Constellation, ExecutorData>();
 
     private static ArrayList<ExecutorData> nonUsedExecutorData = new ArrayList<ExecutorData>();
 

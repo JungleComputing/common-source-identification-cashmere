@@ -482,7 +482,6 @@ public class CommonSourceIdentification {
                         throw new CLException(CL.stringFor_errorCode(err));
                     }
                 });
-                Cashmere.initializeLibraries();
             } else {
                 // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer.
                 // We need them for reading JPG. Ouch. --Ceriel
@@ -494,6 +493,7 @@ public class CommonSourceIdentification {
                 }
             }
             Cashmere.initializeLibraries();
+	    constellation.activate();
 
             if (constellation.isMaster()) {
                 // this is only executed by the master
