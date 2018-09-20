@@ -42,8 +42,6 @@ class CorrelationsNodeActivity extends NodeActivity {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.CorrelationsNodeActivity");
 
-    private int threshold;
-
     // keeping track of the activities that we create/submit and the correlations that we receive
     private ArrayList<CorrelationsActivity> correlationsActivities;
     private int nrReceivedCorrelations;
@@ -51,9 +49,6 @@ class CorrelationsNodeActivity extends NodeActivity {
 
     CorrelationsNodeActivity(int h, int w, List<String> nodes, int nodeIndex, File[] imageFiles, boolean mc) {
         super(h, w, nodes, nodeIndex, imageFiles, mc);
-
-        // the threshold is defined for this node based on the size of the memory of the device and the number of executors
-        this.threshold = CommonSourceIdentification.thresholdDC;
 
         correlationsActivities = new ArrayList<CorrelationsActivity>();
         this.correlations = new Correlations();
@@ -127,10 +122,10 @@ class CorrelationsNodeActivity extends NodeActivity {
         int nrI = endIndexI - startIndexI;
         int nrJ = endIndexJ - startIndexJ;
         if (logger.isDebugEnabled()) {
-            logger.debug("nrI: {}", nrI);
+            logger.debug("nrI: {}, nrJ: {}", nrI, nrJ);
         }
 
-        if (nrI * nrJ <= threshold * threshold) {
+        if (nrI + nrJ <= CommonSourceIdentification.thresholdDC) {
             correlationsActivities.add(
                     new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, mc, 0));
         } else {

@@ -40,8 +40,6 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.TreeCorrelationsActivity");
     static Logger memlogger = LoggerFactory.getLogger("CommonSourceIdentification.Cache");
 
-    private int threshold;
-
     private String nodeCreatorActivity;
 
     // debugging, the amount of TreeCorrelationsActivity in flight and submitted on this node
@@ -52,15 +50,13 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
             File[] imageFiles, boolean mc, int level) {
         super(startI, endI, startJ, endJ, node1, node2, h, w, nodes, imageFiles, mc, level);
 
-        // Each node has its own threshold based on the size of memory of the many-core device
-        this.threshold = CommonSourceIdentification.thresholdDC;
-
         // the hostname of the node that created this
         this.nodeCreatorActivity = CommonSourceIdentification.HOSTNAME;
     }
 
     @Override
     public int initialize(Constellation cons) {
+
         if (logger.isDebugEnabled()) {
             synchronized (TreeCorrelationsActivity.class) {
                 inFlight++;
@@ -98,6 +94,9 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
 
         int nrActivitiesPerIterI;
         int nrActivitiesPerIterJ;
+
+        // thresholdDC contains the total number of images a tile may contain.
+        int threshold = CommonSourceIdentification.thresholdDC / 2;
 
         if (nrActivitiesI / threshold > 2) {
             // The case where we can subdivide both ranges in two.  This will lead to a new TreeCorrelationsActivity.
@@ -194,7 +193,7 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
 
         CorrelationsActivity activity;
         String kind;
-        if (nrActivitiesI * nrActivitiesJ <= threshold * threshold) {
+        if (nrActivitiesI + nrActivitiesJ <= CommonSourceIdentification.thresholdDC) {
             // the LeafCorrelationsActivitiy will be assigned to this node
             activity = new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, mc,
                     level + 1);
