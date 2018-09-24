@@ -78,7 +78,7 @@ class NoisePatternCache {
      * Initialize the noise pattern cache for noise patterns in time and frequency domain.
      *
      * @param device
-     *            the <code>Device</code> for the freqeuncy domain noise patterns
+     *            the <code>Device</code> for the frequency domain noise patterns
      * @param height
      *            the height of the noise patterns
      * @param width
