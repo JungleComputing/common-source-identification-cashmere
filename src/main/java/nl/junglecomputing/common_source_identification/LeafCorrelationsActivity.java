@@ -399,6 +399,7 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
         try {
             ltRegular = NoisePatternCache.lockNoisePatternFreq(index, REGULAR);
             ltFlipped = NoisePatternCache.lockNoisePatternFreq(index, FLIPPED);
+            done[i] = true;
 
             if (ltRegular.readLock() && ltFlipped.readLock()) {
                 if (logger.isDebugEnabled()) {
@@ -407,7 +408,6 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
 
                 setNoisePatternFreq(i, REGULAR, ltRegular.availableElement);
                 setNoisePatternFreq(i, FLIPPED, ltFlipped.availableElement);
-                done[i] = true;
 
             } else if (ltRegular.readLock() && ltFlipped.writeLock()) {
                 if (logger.isDebugEnabled()) {
@@ -417,10 +417,10 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
                 if (noisePatternOnDevice(cons, index, device)) {
                     produceNoisePatternFreq(cons, index, start, FLIPPED, device, ltFlipped.availableElement);
                     setNoisePatternFreq(i, REGULAR, ltRegular.availableElement);
-                    done[i] = true;
+                    NoisePatternCache.toReadLockNoisePatternFreq(index, FLIPPED);
                 } else {
                     NoisePatternCache.unlockNoisePatternFreq(index, REGULAR);
-                    NoisePatternCache.unlockNoisePatternFreq(index, FLIPPED);
+                    NoisePatternCache.unlockNoisePatternFreqRemove(index, FLIPPED);
                     done[i] = false;
                 }
 
@@ -431,11 +431,10 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
 
                 if (noisePatternOnDevice(cons, index, device)) {
                     produceNoisePatternFreq(cons, index, start, REGULAR, device, ltRegular.availableElement);
-                    noisePatternsYFreq[i] = ltFlipped.availableElement;
                     setNoisePatternFreq(i, FLIPPED, ltFlipped.availableElement);
-                    done[i] = true;
+                    NoisePatternCache.toReadLockNoisePatternFreq(index, REGULAR);
                 } else {
-                    NoisePatternCache.unlockNoisePatternFreq(index, REGULAR);
+                    NoisePatternCache.unlockNoisePatternFreqRemove(index, REGULAR);
                     NoisePatternCache.unlockNoisePatternFreq(index, FLIPPED);
                     done[i] = false;
                 }
@@ -448,10 +447,11 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
                 if (noisePatternOnDevice(cons, index, device)) {
                     produceNoisePatternFreq(cons, index, start, FLIPPED, device, ltFlipped.availableElement);
                     produceNoisePatternFreq(cons, index, start, REGULAR, device, ltRegular.availableElement);
-                    done[i] = true;
+                    NoisePatternCache.toReadLockNoisePatternFreq(index, FLIPPED);
+                    NoisePatternCache.toReadLockNoisePatternFreq(index, REGULAR);
                 } else {
-                    NoisePatternCache.unlockNoisePatternFreq(index, REGULAR);
-                    NoisePatternCache.unlockNoisePatternFreq(index, FLIPPED);
+                    NoisePatternCache.unlockNoisePatternFreqRemove(index, REGULAR);
+                    NoisePatternCache.unlockNoisePatternFreqRemove(index, FLIPPED);
                     done[i] = false;
                 }
             } else {
@@ -459,10 +459,18 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
             }
         } catch (LockException e) {
             if (ltRegular != null) {
-                NoisePatternCache.unlockNoisePatternFreqRemove(index, REGULAR);
+                if (ltRegular.writeLock()) {
+                    NoisePatternCache.unlockNoisePatternFreqRemove(index, REGULAR);
+                } else {
+                    NoisePatternCache.unlockNoisePatternFreq(index, REGULAR);
+                }
             }
             if (ltFlipped != null) {
-                NoisePatternCache.unlockNoisePatternFreqRemove(index, FLIPPED);
+                if (ltFlipped.writeLock()) {
+                    NoisePatternCache.unlockNoisePatternFreqRemove(index, FLIPPED);
+                } else {
+                    NoisePatternCache.unlockNoisePatternFreq(index, FLIPPED);
+                }
             }
             done[i] = false;
         }
