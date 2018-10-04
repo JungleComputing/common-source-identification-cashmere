@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification;
+package nl.junglecomputing.common_source_identification.main_mem_cache;
 
 import org.jocl.Pointer;
 import org.jocl.cl_command_queue;
