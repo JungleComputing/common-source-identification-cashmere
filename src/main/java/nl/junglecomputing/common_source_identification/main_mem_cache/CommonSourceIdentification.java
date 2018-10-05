@@ -55,6 +55,8 @@ import ibis.constellation.util.MemorySizes;
 import ibis.constellation.util.SingleEventCollector;
 import sun.misc.VM;
 
+import nl.junglecomputing.common_source_identification.mc.FFT;
+
 @SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
@@ -468,16 +470,17 @@ public class CommonSourceIdentification {
                         throw new CLException(CL.stringFor_errorCode(err));
                     }
                 });
-            } else {
-                // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer.
-                // We need them for reading JPG. Ouch. --Ceriel
-                try {
-                    Class.forName(FFT.class.getName());
-                } catch (ClassNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
+            } 
+	    // else {
+            //     // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer.
+            //     // We need them for reading JPG. Ouch. --Ceriel
+            //     try {
+            //         Class.forName(FFT.class.getName());
+            //     } catch (ClassNotFoundException e) {
+            //         // TODO Auto-generated catch block
+            //         e.printStackTrace();
+            //     }
+            // }
             Cashmere.initializeLibraries();
             constellation.activate();
 

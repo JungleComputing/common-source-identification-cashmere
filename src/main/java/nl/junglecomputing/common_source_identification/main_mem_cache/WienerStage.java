@@ -29,6 +29,9 @@ import ibis.cashmere.constellation.LibFuncLaunch;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Timer;
 
+import nl.junglecomputing.common_source_identification.mc.FFT;
+
+
 /*
  * Stage that applies the Wiener filter.
  */
