@@ -45,32 +45,4 @@ class ComputeNoisePattern {
         float[] normalized = ZeroMeanStage.execute(h, w, withoutNoise, executor);
         return WienerStage.execute(h, w, normalized, executor);
     }
-
-    // static void computePRNU_MC(int index, File file, int h, int w, String executor, Device device, ExecutorData data)
-    //         throws IOException, CashmereNotAvailable, LibFuncNotAvailable {
-
-    //     if (logger.isDebugEnabled()) {
-    //         logger.debug("Computing PRNU for {} on mc", index);
-    //     }
-
-    //     Buffer image = getImage(file.getPath(), h, w, executor, data);
-
-    //     Kernel fn1Kernel = Cashmere.getKernel("fastnoise1Kernel", device);
-    //     Kernel fn2Kernel = Cashmere.getKernel("fastnoise2Kernel", device);
-
-    //     KernelLaunch fn1KL = fn1Kernel.createLaunch();
-    //     KernelLaunch fn2KL = fn2Kernel.createLaunch();
-
-    //     ImageToGrayscaleStage.executeMC(device, image, h, w, executor, data);
-
-    //     FastNoiseStage.executeMC(device, h, w, executor, fn1KL, fn2KL, data);
-
-    //     ZeroMeanStage.executeMC(device, h, w, executor, data);
-
-    //     WienerStage.executeMC(device, h, w, executor, data);
-    // }
-
-    static Buffer getImage(String filename, int h, int w, String executor, ExecutorData data) throws IOException {
-        return FileToImageStage.execute(filename, h, w, executor, data.imageBuffer);
-    }
 }

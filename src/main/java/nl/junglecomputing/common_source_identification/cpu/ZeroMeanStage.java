@@ -100,29 +100,4 @@ public class ZeroMeanStage extends Stage {
 
         return output;
     }
-
-    public static void executeMC(Device device, int h, int w, String executor, ExecutorData data) throws CashmereNotAvailable {
-
-        Timer timer = Cashmere.getTimer("MC", executor, "zeromean");
-        int event = timer.start();
-
-        Kernel verKernel = Cashmere.getKernel("zeromeanVerticallyKernel", device);
-        Kernel traKernel = Cashmere.getKernel("transposeKernel", device);
-
-        KernelLaunch ver1KL = verKernel.createLaunch();
-        KernelLaunch tra1KL = traKernel.createLaunch();
-        KernelLaunch ver2KL = verKernel.createLaunch();
-        KernelLaunch tra2KL = traKernel.createLaunch();
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Executing the zeromean stage");
-        }
-
-        MCL.launchZeromeanVerticallyKernel(ver1KL, h, w, data.temp2, false, data.noisePattern, false);
-        MCL.launchTransposeKernel(tra1KL, w, h, data.noisePattern, false, data.temp2, false);
-        MCL.launchZeromeanVerticallyKernel(ver2KL, w, h, data.temp2, false, data.noisePattern, false);
-        MCL.launchTransposeKernel(tra2KL, h, w, data.noisePattern, false, data.temp2, false);
-
-        timer.stop(event);
-    }
 }

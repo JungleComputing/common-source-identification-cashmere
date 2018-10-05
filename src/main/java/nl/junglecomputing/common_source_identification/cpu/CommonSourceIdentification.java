@@ -56,6 +56,8 @@ import ibis.constellation.util.MemorySizes;
 import ibis.constellation.util.SingleEventCollector;
 import sun.misc.VM;
 
+import nl.junglecomputing.common_source_identification.Version;
+
 @SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
@@ -107,10 +109,6 @@ public class CommonSourceIdentification {
     static final Map<ImageDims, Long> FFT_FLOPS_FORWARD = createFFTFlopsMap(true);
     static final Map<ImageDims, Long> FFT_FLOPS_BACKWARD = createFFTFlopsMap(false);
 
-    // Ceriel, I propose to use an enum for the version, but maybe you want to combine the flags, mc + cached or something?
-    enum Version {
-        CPU, MC, USE_CACHE
-    }
 
     /*
      * Functions for images and results
@@ -182,10 +180,8 @@ public class CommonSourceIdentification {
         return new ImageDims(imageFile);
     }
 
-    static void writeFiles(CorrelationMatrix correlationMatrix, File[] imageFiles, boolean runOnMc) throws FileNotFoundException {
-        String cpuOrMc = runOnMc ? "mc" : "cpu";
-
-        PrintStream out = new PrintStream("prnu_" + cpuOrMc + ".out");
+    static void writeFiles(CorrelationMatrix correlationMatrix, File[] imageFiles, Version version) throws FileNotFoundException {
+        PrintStream out = new PrintStream("prnu_" + version + ".out");
 
         double[][] coefficients = correlationMatrix.coefficients;
 
@@ -340,11 +336,10 @@ public class CommonSourceIdentification {
     }
 
     static CorrelationMatrix submitCorrelations(SingleEventCollector sec, ActivityIdentifier id, int height, int width,
-            File[] imageFiles, List<String> nodes, boolean runOnMc, boolean useCache) throws NoSuitableExecutorException {
+            File[] imageFiles, List<String> nodes) throws NoSuitableExecutorException {
         for (int i = 0; i < imageFiles.length; i++) {
             for (int j = i + 1; j < imageFiles.length; j++) {
-                CorrelationsActivity ca = new CorrelationsActivity(id, height, width, i, j, imageFiles[i], imageFiles[j], runOnMc,
-                        useCache);
+                CorrelationsActivity ca = new CorrelationsActivity(id, height, width, i, j, imageFiles[i], imageFiles[j]);
                 Cashmere.submit(ca);
             }
         }
@@ -393,9 +388,7 @@ public class CommonSourceIdentification {
         // every node in the cluster does the following:
         setHostName();
         int nrNodes = 1;
-        boolean runOnMc = false;
-        boolean useCache = false;
-        Version version = Version.MC;
+        Version version = Version.CPU;
 
         String nt = System.getProperty("ibis.pool.size");
         if (nt != null) {
@@ -413,17 +406,6 @@ public class CommonSourceIdentification {
             } else if (args[i].equals("-image-dir")) {
                 i++;
                 nameImageDir = args[i];
-            } else if (args[i].equals("-mc")) {
-                runOnMc = true;
-                version = Version.MC;
-            } else if (args[i].equals("-mainMemCache")) {
-                useCache = true;
-                // useCache implies doing -mc as well
-                runOnMc = true;
-                version = Version.USE_CACHE;
-            } else if (args[i].equals("-cpu")) {
-                runOnMc = false;
-                version = Version.CPU;
             } else {
                 throw new Error("Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu | -mc ]");
             }
@@ -437,24 +419,10 @@ public class CommonSourceIdentification {
 
             Cashmere.initialize(getConfigurations());
             Constellation constellation = Cashmere.getConstellation();
-	    //Constellation constellation = ConstellationFactory.createConstellation(getConfigurations());
 
-	
-                // // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer.
-                // // We need them for reading JPG. Ouch. --Ceriel
-                // try {
-                //     Class.forName(FFT.class.getName());
-                // } catch (ClassNotFoundException e) {
-                //     // TODO Auto-generated catch block
-                //     e.printStackTrace();
-                // }
-
-            //Cashmere.initializeLibraries();
             constellation.activate();
 
             if (constellation.isMaster()) {
-                // this is only executed by the master
-
                 logger.info("CommonSourceIdentification, running with number of nodes: " + nrNodes);
                 logger.info("image-dir: " + nameImageDir);
 
@@ -472,9 +440,7 @@ public class CommonSourceIdentification {
                 int eventNo = timer.start();
 
                 // start activities for all correlations.
-
-                CorrelationMatrix result = submitCorrelations(sec, progressActivityID, height, width, imageFiles, nodes, runOnMc,
-                        useCache);
+                CorrelationMatrix result = submitCorrelations(sec, progressActivityID, height, width, imageFiles, nodes);
                 ArrayList<Link> linkage = Linkage.hierarchical_clustering(result.coefficients);
 
                 timer.stop(eventNo);
@@ -483,20 +449,9 @@ public class CommonSourceIdentification {
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
                 int n = imageFiles.length;
-                int nrNoisePatternsComputed = n;
-                int nrNoisePatternsTransformed = n;
-                switch (version) {
-                case CPU:
-                case MC:
-                    nrNoisePatternsComputed = (n * (n - 1)) / 2;
-                    nrNoisePatternsTransformed = (n * (n - 1)) / 2;
-                    break;
-                case USE_CACHE:
-                    nrNoisePatternsComputed = (n * (n - 1)) / 2;
-                    nrNoisePatternsTransformed = nrNoisePatternsComputed;
-                    // TODO: figure out the number of computed and transformed noise patterns
-                    break;
-                }
+                int nrNoisePatternsComputed = (n * (n - 1)) / 2;
+                int nrNoisePatternsTransformed = (n * (n - 1)) / 2;
+
                 printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed, timeNanos);
 
                 // we wait for the progress activity to stop
@@ -506,7 +461,7 @@ public class CommonSourceIdentification {
 
                 Timer writeFilesTimer = Cashmere.getTimer("java", "master", "Write files");
                 int writeEvent = writeFilesTimer.start();
-                writeFiles(result, imageFiles, runOnMc);
+                writeFiles(result, imageFiles, version);
                 Linkage.write_linkage(linkage);
                 Linkage.write_flat_clustering(linkage, imageFiles.length);
                 writeFilesTimer.stop(writeEvent);
@@ -522,16 +477,6 @@ public class CommonSourceIdentification {
             // ended.
 	    constellation.done();
 
-            // cleanup
-            // if (runOnMc) {
-            //     Cashmere.deinitializeLibraries();
-            //     if (useCache) {
-            //         clearCaches();
-            //     }
-            // }
-
-            // explicit exit because the FFT library sometimes keeps threads
-            // alive preventing us to exit.
             System.exit(0);
         } catch (IOException | ConstellationCreationException e) {
             throw new Error(e);
@@ -553,23 +498,4 @@ public class CommonSourceIdentification {
 
         return nrNoisePatterns;
     }
-
-    static void initializeCache(int height, int width, int nrThreads) {
-        int sizeNoisePattern = height * width * 4;
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
-        }
-
-        int memReservedForGrayscale = height * width * 3 * nrThreads;
-        int nrNoisePatternsMemory = getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale);
-
-        NoisePatternCache.initialize(height, width, nrNoisePatternsMemory);
-
-    }
-
-    static void clearCaches() {
-        NoisePatternCache.clear();
-    }
-
 }

@@ -165,15 +165,4 @@ class FastNoiseStage extends Stage {
 
         return input;
     }
-
-    public static void executeMC(Device device, int h, int w, String executor, KernelLaunch fn1KL, KernelLaunch fn2KL,
-            ExecutorData data) throws CashmereNotAvailable {
-
-        Timer timer = Cashmere.getTimer("MC", executor, "fastnoise");
-        int event = timer.start();
-
-        MCL.launchFastnoise1Kernel(fn1KL, h, w, data.temp2, false, data.noisePattern, false);
-        MCL.launchFastnoise2Kernel(fn2KL, h, w, data.noisePattern, false, data.temp2, false);
-        timer.stop(event);
-    }
 }

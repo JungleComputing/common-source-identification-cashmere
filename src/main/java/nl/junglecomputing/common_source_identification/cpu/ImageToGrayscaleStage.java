@@ -49,25 +49,4 @@ class ImageToGrayscaleStage extends Stage {
 
         return pixelsFloat;
     }
-
-    static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data)
-            throws CashmereNotAvailable {
-
-        Timer timer = Cashmere.getTimer("MC", executor, "convert to grayscale");
-        int event = timer.start();
-
-        Kernel kernel = Cashmere.getKernel("grayscaleKernel", device);
-
-        device.copy(image, data.imagePointer);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("Doing image to grayscale stage");
-        }
-
-        KernelLaunch kernelLaunch = kernel.createLaunch();
-
-        MCL.launchGrayscaleKernel(kernelLaunch, h * w, data.noisePattern, false, data.imagePointer, false);
-        timer.stop(event);
-
-    }
 }
