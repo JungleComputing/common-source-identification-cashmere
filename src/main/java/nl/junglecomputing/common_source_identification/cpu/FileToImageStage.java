@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification.main_mem_cache;
+package nl.junglecomputing.common_source_identification.cpu;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
@@ -28,8 +28,6 @@ import javax.imageio.ImageIO;
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.constellation.Timer;
-
-import nl.junglecomputing.common_source_identification.cpu.ReadJPG;
 
 class FileToImageStage extends Stage {
 

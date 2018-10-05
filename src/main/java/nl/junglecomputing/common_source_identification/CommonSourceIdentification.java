@@ -23,7 +23,7 @@ public class CommonSourceIdentification {
     public static void main(String[] args) throws NoSuitableExecutorException {
         for (int i = 0; i < args.length; i++) {
 	    if (args[i].equals("-cpu")) {
-		//nl.junglecomputing.common_source_identification.cpu.CommonSourceIdentification.main(args);
+		nl.junglecomputing.common_source_identification.cpu.CommonSourceIdentification.main(args);
 	    } else if (args[i].equals("-mc")) {
 		//nl.junglecomputing.common_source_identification.mc.CommonSourceIdentification.main(args);
             } else if (args[i].equals("-mainMemCache")) {
