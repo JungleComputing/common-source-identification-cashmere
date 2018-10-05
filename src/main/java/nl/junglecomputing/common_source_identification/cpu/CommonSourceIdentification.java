@@ -399,15 +399,14 @@ public class CommonSourceIdentification {
         setNodeID(nodes);
         String nameImageDir = "";
 
+
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-nrNodes")) {
-                i++;
-                nrNodes = Integer.parseInt(args[i]);
-            } else if (args[i].equals("-image-dir")) {
+	    if (args[i].equals("-image-dir")) {
                 i++;
                 nameImageDir = args[i];
-            } else {
-                throw new Error("Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu | -mc ]");
+            } else if (args[i].equals("-cpu")) {
+	    } else {
+                throw new Error(nl.junglecomputing.common_source_identification.CommonSourceIdentification.USAGE);
             }
         }
 

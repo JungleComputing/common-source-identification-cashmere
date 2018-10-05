@@ -20,6 +20,8 @@ import ibis.constellation.NoSuitableExecutorException;
 
 public class CommonSourceIdentification {
 
+    public static final String USAGE = "Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu -mc -mainMemCache ]";
+
     public static void main(String[] args) throws NoSuitableExecutorException {
         for (int i = 0; i < args.length; i++) {
 	    if (args[i].equals("-cpu")) {
