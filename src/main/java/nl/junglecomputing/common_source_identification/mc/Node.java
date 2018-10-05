@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification.main_mem_cache;
+package nl.junglecomputing.common_source_identification.mc;
 
 // a node in a doubly linked list to implement a LRU cache
 class Node {

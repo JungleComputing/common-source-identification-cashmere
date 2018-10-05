@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification.main_mem_cache;
+package nl.junglecomputing.common_source_identification.mc;
 
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;

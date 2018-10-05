@@ -1,4 +1,4 @@
-package nl.junglecomputing.common_source_identification.main_mem_cache;
+package nl.junglecomputing.common_source_identification.mc;
 
 import java.io.File;
 import java.io.IOException;

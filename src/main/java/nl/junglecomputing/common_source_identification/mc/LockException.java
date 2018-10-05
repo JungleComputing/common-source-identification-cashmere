@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification.main_mem_cache;
+package nl.junglecomputing.common_source_identification.mc;
 
 /*
  * An exception that indicates that we failed to lock a lock.  It also indicates whether a read or write lock failed.
