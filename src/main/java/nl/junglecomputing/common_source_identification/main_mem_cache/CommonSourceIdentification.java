@@ -415,7 +415,7 @@ public class CommonSourceIdentification {
             } else if (args[i].equals("-mc")) {
                 runOnMc = true;
                 version = Version.MC;
-            } else if (args[i].equals("-useCache")) {
+            } else if (args[i].equals("-mainMemCache")) {
                 useCache = true;
                 // useCache implies doing -mc as well
                 runOnMc = true;

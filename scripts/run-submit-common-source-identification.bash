@@ -11,10 +11,10 @@ then
 elif echo "$@" | grep -q -- "-mc"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
-elif echo "$@" | grep -q -- "-useCache"
+elif echo "$@" | grep -q -- "-mainMemCache"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
 else
-    echo "Need parameter -cpu, -mc, or -useCache"
+    echo "Need parameter -cpu, -mc, or -mainMemCache"
     exit 1
 fi
