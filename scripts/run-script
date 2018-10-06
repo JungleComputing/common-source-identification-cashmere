@@ -20,7 +20,7 @@ mkdir -p /local/$USER
 
 # with ib, with mem barriers
 java -classpath $CLASSPATH \
-     -Dibis.io.buffer.size=65536 \
+     -Dibis.io.buffer.size=16384 \
      -Dibis.io.conversion.buffer.size=65536 \
      -XX:+UseMembar \
      -Dcom.sun.management.jmxremote=true \
