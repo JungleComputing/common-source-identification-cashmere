@@ -19,19 +19,17 @@ package nl.junglecomputing.common_source_identification.main_mem_cache;
 class LockToken<T> {
     final int index;
     final int victim;
-    final boolean flipped;
     T availableElement;
 
     private final boolean writeLock;
 
-    LockToken(int index, boolean flipped, boolean writeLock) {
-        this(index, -1, flipped, writeLock);
+    LockToken(int index, boolean writeLock) {
+        this(index, -1, writeLock);
     }
 
-    LockToken(int index, int victim, boolean flipped, boolean writeLock) {
+    LockToken(int index, int victim, boolean writeLock) {
         this.index = index;
         this.victim = victim;
-        this.flipped = flipped;
         this.writeLock = writeLock;
     }
 

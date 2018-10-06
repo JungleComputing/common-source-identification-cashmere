@@ -27,12 +27,11 @@ import ibis.cashmere.constellation.Buffer;
 
 /**
  * The NoisePatternCache is a cache for noise patterns that allows threads to lock a specific noise pattern. The NoisePatternCache
- * keeps track of three types of noise patterns in different memories: - the actual noise patterns, in time domain, kept in the
- * main memory of the node, - noise patterns in the frequency domain, not flipped (regular), kept in the memory of the many-core
- * device - noise patterns in the frequency domain, flipped, kept in the memory of the many-core device
+ * keeps track of the noise patterns in time domain, kept in the
+ * main memory of the node.
  *
  * The class is thread safe, but the locking is performed on the granularity of a noise pattern. Each noise pattern has an index,
- * and we can lock such an index. We implemented this with a mapping from index to locks for all three variants of noise patterns.
+ * and we can lock such an index. We implemented this with a mapping from index to locks.
  * The locks are reentrant read/write locks, to make sure that multiple threads can read the noise pattern, but only one can write
  * it.
  */
@@ -100,7 +99,7 @@ class NoisePatternCache {
         if (logger.isDebugEnabled()) {
             logger.debug("Trying to lock noise pattern {}", index);
         }
-        return lock(index, TIME_DOMAIN_NOISE_PATTERN, noisePatternLocks, noisePatterns);
+        return lock(index, noisePatternLocks, noisePatterns);
     }
 
     /**
@@ -113,7 +112,7 @@ class NoisePatternCache {
         if (logger.isDebugEnabled()) {
             logger.debug("Unlocking noise pattern {}", index);
         }
-        unlock(index, TIME_DOMAIN_NOISE_PATTERN, noisePatternLocks, noisePatterns, NO_EVICT);
+        unlock(index, noisePatternLocks, noisePatterns, NO_EVICT);
     }
 
     /**
@@ -143,13 +142,13 @@ class NoisePatternCache {
      * Lock the noise pattern.  If it is in the cache, then we return a read lock, otherwise a write lock.  We briefly lock the
      * whole cache, but this should not be a problem.
      */
-    private static <T> LockToken<T> lock(int index, boolean flipped, LockMap locks, Cache<T> cache) throws LockException {
+    private static <T> LockToken<T> lock(int index, LockMap locks, Cache<T> cache) throws LockException {
         try {
             synchronized (cache) {
                 if (cache.contains(index)) {
-                    return lockForRead(index, flipped, locks, cache);
+                    return lockForRead(index, locks, cache);
                 } else {
-                    return lockForWrite(index, flipped, locks, cache);
+                    return lockForWrite(index, locks, cache);
                 }
             }
         } catch (LockException le) {
@@ -172,40 +171,31 @@ class NoisePatternCache {
      *
      * pre:
      * - cache is locked
-     * - index flipped is in the cache
+     * - index is in the cache
      * post:
      * - success:
      *   - current thread holds a read lock for index
-     *   - LockToken is returned with element index flipped
-     *   - index flipped is marked as locked in cache
+     *   - LockToken is returned with element index
+     *   - index is marked as locked in cache
      * - failure:
      *   - current thread does not hold a read lock
      *   - LockException is thrown
      */
-    private static <T> LockToken<T> lockForRead(int index, boolean flipped, LockMap locks, Cache<T> cache) throws LockException {
-        String noisePattern = "";
-        if (logger.isDebugEnabled()) {
-            if (cache == noisePatterns) {
-                noisePattern = "noise pattern";
-            } else {
-                noisePattern = "noise pattern freq " + string(flipped);
-            }
-        }
-
+    private static <T> LockToken<T> lockForRead(int index, LockMap locks, Cache<T> cache) throws LockException {
         ReentrantReadWriteLock lock = getLock(index, locks);
         if (!lock.readLock().tryLock()) {
             if (logger.isDebugEnabled()) {
-                logger.debug(String.format("%s %d in cache, failed to lock for read", noisePattern, index));
+                logger.debug(String.format("noise pattern %d in cache, failed to lock for read", index));
             }
             throw new LockException(READ);
         }
 
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("%s %d in cache, locked for read", noisePattern, index));
+            logger.debug(String.format("noisePattern %d in cache, locked for read", index));
         }
 
         cache.markLocked(index);
-        LockToken<T> lt = new LockToken<T>(index, flipped, READ);
+        LockToken<T> lt = new LockToken<T>(index, READ);
         lt.availableElement = cache.get(index);
 
         return lt;
@@ -239,31 +229,25 @@ class NoisePatternCache {
      * - index is not in cache
      * post:
      * - success:
-     *   - current thread holds the write lock for index flipped
-     *   - LockToken is returned with element index flipped
+     *   - current thread holds the write lock for index 
+     *   - LockToken is returned with element index 
      *   - if necessary elements are evicted
-     *   - index flipped is marked as locked in cache
+     *   - index is marked as locked in cache
      * - failure:
      *   - current thread does not hold the write lock
      *   - nothing is evicted
      *   - an exception is thrown
      */
-    private static <T> LockToken<T> lockForWrite(int index, boolean flipped, LockMap locks, Cache<T> cache) throws LockException {
-        LockToken<T> victims = new LockToken<T>(index, cache.findEvictionCandidate(), flipped, WRITE);
+    private static <T> LockToken<T> lockForWrite(int index, LockMap locks, Cache<T> cache) throws LockException {
+        LockToken<T> victims = new LockToken<T>(index, cache.findEvictionCandidate(), WRITE);
 
         if (logger.isDebugEnabled()) {
-            String noisePattern;
             String message = "";
-            if (cache == noisePatterns) {
-                noisePattern = "noise pattern";
-            } else {
-                noisePattern = "noise pattern freq " + string(flipped);
-            }
 
             if (victims.victim != -1) {
-                message = String.format(", for evicting %s %d", noisePattern, victims.victim);
+                message = String.format(", for evicting noise pattern %d", victims.victim);
             }
-            logger.debug(String.format("Trying to lock %s %d for write%s", noisePattern, index, message));
+            logger.debug(String.format("Trying to lock noise pattern %d for write%s", index, message));
         }
 
         try {
@@ -376,29 +360,22 @@ class NoisePatternCache {
      * - the write lock for lt.victim is released
      */
     private static <T> void evict(LockToken<?> lt, LockMap locks, Cache<T> cache) {
-        // whether it is a noise pattern or a noise pattern freq
-        boolean freq = cache != noisePatterns;
-
         if (lt.victim != -1) {
             cache.evict(lt.victim);
             ReentrantReadWriteLock lock = locks.get(lt.victim);
             lock.writeLock().unlock();
 
             if (logger.isDebugEnabled()) {
-                if (freq) {
-                    logger.debug("noise pattern freq {} {} evicted from device", lt.flipped ? "flipped" : "regular", lt.victim);
-                } else {
-                    logger.debug("noise pattern {} evicted from memory", lt.victim);
-                }
+		logger.debug("noise pattern {} evicted from memory", lt.victim);
             }
         }
     }
 
     /*
-     * Unlock index flipped.  We may want to evict the item, but anyway the item will be markted from being locked to being a
+     * Unlock index.  We may want to evict the item, but anyway the item will be markted from being locked to being a
      * possible eviction candidate.
      */
-    private static <T> void unlock(int index, boolean flipped, LockMap locks, Cache<T> cache, boolean evict) {
+    private static <T> void unlock(int index, LockMap locks, Cache<T> cache, boolean evict) {
         synchronized (cache) {
             ReentrantReadWriteLock lock = locks.get(index);
             if (lock.isWriteLockedByCurrentThread()) {
@@ -432,19 +409,13 @@ class NoisePatternCache {
      * Move a write lock to a read lock.
      *
      * pre:
-     * - the current thread holds the write lock for index flipped
+     * - the current thread holds the write lock for index
      * post:
-     * - the current thread holds a read lock for index flipped
+     * - the current thread holds a read lock for index
      */
-    private static <T> void toReadLock(int index, boolean flipped, LockMap locks, Cache<T> cache) {
+    private static <T> void toReadLock(int index, LockMap locks, Cache<T> cache) {
         ReentrantReadWriteLock lock = locks.get(index);
         lock.readLock().lock();
         lock.writeLock().unlock();
-    }
-
-    // some methods for retrieving the right datastructure based on whether it is flipped or regular.
-
-    private static String string(boolean flipped) {
-        return flipped ? "flipped" : "regular";
     }
 }
