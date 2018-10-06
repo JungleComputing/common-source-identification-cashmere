@@ -27,15 +27,15 @@ import ibis.constellation.StealStrategy;
 /*
  * Helper class to make Constellation Configurations.
  */
-class ConfigurationFactory {
+public class ConfigurationFactory {
 
     private ArrayList<ConstellationConfiguration> configurations;
 
-    ConfigurationFactory() {
+    public ConfigurationFactory() {
         configurations = new ArrayList<ConstellationConfiguration>();
     }
 
-    void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, AbstractContext context,
+    public void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, AbstractContext context,
             StealStrategy localStrategy, StealStrategy remoteStrategy) {
 
         for (int i = 0; i < nrExecutors; i++) {
@@ -44,17 +44,17 @@ class ConfigurationFactory {
         }
     }
 
-    void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context,
+    public void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context,
             StealStrategy localStrategy, StealStrategy remoteStrategy) {
         createConfigurations(nrExecutors, myPool, stealsFrom, new Context(context), localStrategy, remoteStrategy);
     }
 
-    void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context) {
+    public void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context) {
         createConfigurations(nrExecutors, myPool, stealsFrom, new Context(context), StealStrategy.SMALLEST,
                 StealStrategy.SMALLEST);
     }
 
-    ConstellationConfiguration[] getConfigurations() {
+    public ConstellationConfiguration[] getConfigurations() {
         ConstellationConfiguration[] array = new ConstellationConfiguration[configurations.size()];
         return configurations.toArray(array);
     }

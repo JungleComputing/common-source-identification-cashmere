@@ -17,17 +17,17 @@ import ibis.constellation.util.SingleEventCollector;
 public class NodeInformation {
 
     // constants for setting up Constellation (some are package private)
-    static String HOSTNAME = "localhost";
+    public static String HOSTNAME = "localhost";
     static int ID = 0;
-    static String STEALPOOL = "stealpool";
-    static String LABEL = "commonSourceIdentification";
+    public static String STEALPOOL = "stealpool";
+    public static String LABEL = "commonSourceIdentification";
 
 
     /*
      * All kinds of bookkeeping methods
      */
 
-    static void setNodeID(List<String> nodes) {
+    public static void setNodeID(List<String> nodes) {
         for (int i = 0; i < nodes.size(); i++) {
             if (nodes.get(i).equals(HOSTNAME)) {
                 ID = i;
@@ -36,7 +36,7 @@ public class NodeInformation {
         }
     }
 
-    static int getNrExecutors(String property, int defaultValue) {
+    public static int getNrExecutors(String property, int defaultValue) {
         String prop = System.getProperties().getProperty(property);
         int nrExecutors = defaultValue;
         if (prop != null) {
@@ -46,7 +46,7 @@ public class NodeInformation {
         return nrExecutors;
     }
 
-    static void setHostName() {
+    public static void setHostName() {
         try {
             Runtime r = Runtime.getRuntime();
             Process p = r.exec("hostname");
@@ -63,7 +63,7 @@ public class NodeInformation {
      * Various Constellation activities
      */
 
-    static ActivityIdentifier progressActivity(SingleEventCollector sec, int nrImages) throws NoSuitableExecutorException {
+    public static ActivityIdentifier progressActivity(SingleEventCollector sec, int nrImages) throws NoSuitableExecutorException {
 
         ActivityIdentifier aid = Cashmere.submit(sec);
 
@@ -74,7 +74,7 @@ public class NodeInformation {
         return progressActivityID;
     }
 
-    static String getProcessId(final String fallback) {
+    public static String getProcessId(final String fallback) {
         // Note: may fail in some JVM implementations
         // therefore fallback has to be provided
 

@@ -29,7 +29,7 @@ import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.constellation.Timer;
 
-class FileToImageStage extends Stage {
+public class FileToImageStage extends Stage {
 
     static BufferedImage readImage(File file) throws IOException {
 
@@ -44,7 +44,7 @@ class FileToImageStage extends Stage {
         return null;
     }
 
-    static BufferedImage execute(File file, String executor) throws IOException {
+    public static BufferedImage execute(File file, String executor) throws IOException {
 
         Timer timer = Cashmere.getTimer("java", executor, "Read in image");
         int event = timer.start();
@@ -53,7 +53,7 @@ class FileToImageStage extends Stage {
         return image;
     }
 
-    static Buffer execute(String filename, int h, int w, String executor, Buffer data) throws IOException {
+    public static Buffer execute(String filename, int h, int w, String executor, Buffer data) throws IOException {
 
         Timer timer = Cashmere.getTimer("java", executor, "Read in image");
         int event = timer.start();

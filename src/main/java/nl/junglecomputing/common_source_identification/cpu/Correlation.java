@@ -21,15 +21,15 @@ import java.io.Serializable;
 /*
  * A Correlation holds its coordinates and the coefficient.
  */
-class Correlation implements Serializable {
+public class Correlation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     int i;
     int j;
-    double coefficient;
+    public double coefficient;
 
-    Correlation(int i, int j) {
+    public Correlation(int i, int j) {
         this.i = i;
         this.j = j;
         this.coefficient = -1.0;

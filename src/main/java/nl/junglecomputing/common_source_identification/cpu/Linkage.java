@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-class Linkage {
+public class Linkage {
 
     static final String LINKAGE_FILENAME = "linkage.txt";
     static final String CLUSTERING_FILENAME = "clustering.txt";
@@ -44,7 +44,7 @@ class Linkage {
         return index;
     }
 
-    static ArrayList<Link> hierarchical_clustering(double[][] cortable) {
+    public static ArrayList<Link> hierarchical_clustering(double[][] cortable) {
         int N = cortable.length;
         double[][] matrix = new double[N][N];
 
@@ -135,7 +135,7 @@ class Linkage {
         return linkage;
     }
 
-    static void write_linkage(ArrayList<Link> linkage) {
+    public static void write_linkage(ArrayList<Link> linkage) {
         try {
             PrintWriter textfile = new PrintWriter(LINKAGE_FILENAME);
             for (Link l : linkage) {
@@ -148,7 +148,7 @@ class Linkage {
         }
     }
 
-    static void write_flat_clustering(ArrayList<Link> linkage, int N) {
+    public static void write_flat_clustering(ArrayList<Link> linkage, int N) {
         final double THRESHOLD = 60.0;
 
         try {

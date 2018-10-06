@@ -22,6 +22,8 @@ import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.constellation.Timer;
 
+import nl.junglecomputing.common_source_identification.cpu.Stage;
+
 class FastNoiseStage extends Stage {
 
     public static void executeMC(Device device, int h, int w, String executor, KernelLaunch fn1KL, KernelLaunch fn2KL,

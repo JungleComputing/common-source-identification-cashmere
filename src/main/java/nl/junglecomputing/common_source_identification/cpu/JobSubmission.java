@@ -61,7 +61,7 @@ public class JobSubmission {
         }
     }
 
-    static List<String> getNodes() {
+    public static List<String> getNodes() {
         List<String> nodes = new ArrayList<String>();
 
         String inputNodes = System.getenv("SLURM_JOB_NODELIST");

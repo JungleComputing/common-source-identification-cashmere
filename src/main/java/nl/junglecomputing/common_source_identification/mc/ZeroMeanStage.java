@@ -23,6 +23,8 @@ import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.constellation.Timer;
 
+import nl.junglecomputing.common_source_identification.cpu.Stage;
+
 /*
  * Stage that applies the ZeroMean filter
  */

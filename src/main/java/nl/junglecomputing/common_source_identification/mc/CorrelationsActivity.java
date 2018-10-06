@@ -16,6 +16,8 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 
+import nl.junglecomputing.common_source_identification.cpu.Correlation;
+
 public class CorrelationsActivity extends Activity {
 
     private static final long serialVersionUID = 1L;

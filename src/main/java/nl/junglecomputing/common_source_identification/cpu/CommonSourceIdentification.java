@@ -16,29 +16,18 @@
 
 package nl.junglecomputing.common_source_identification.cpu;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.jocl.CL;
-import org.jocl.CLException;
-import org.jocl.cl_command_queue;
-import org.jocl.cl_context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
-import ibis.cashmere.constellation.Device;
+
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationConfiguration;
@@ -48,9 +37,7 @@ import ibis.constellation.NoSuitableExecutorException;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
-import ibis.constellation.util.MemorySizes;
 import ibis.constellation.util.SingleEventCollector;
-import sun.misc.VM;
 
 import nl.junglecomputing.common_source_identification.Version;
 
@@ -191,20 +178,4 @@ public class CommonSourceIdentification {
             throw new Error(e);
         }
     }
-
-    // static int nrNoisePatternsForSpace(long space, long sizeNoisePattern) {
-    //     return (int) Math.floor(space / (double) sizeNoisePattern);
-    // }
-
-    // static int getNrNoisePatternsMemory(int sizeNoisePattern, int spaceForGrayscale) {
-    //     long spaceForNoisePatterns = VM.maxDirectMemory() - spaceForGrayscale;
-    //     int nrNoisePatterns = nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
-
-    //     if (logger.isDebugEnabled()) {
-    //         logger.debug("space for noise patterns: " + MemorySizes.toStringBytes(spaceForNoisePatterns));
-    //         logger.debug(String.format("The memory will hold a maximum of " + "%d noise patterns", nrNoisePatterns));
-    //     }
-
-    //     return nrNoisePatterns;
-    // }
 }

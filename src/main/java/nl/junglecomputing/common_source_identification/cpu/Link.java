@@ -16,7 +16,7 @@
 
 package nl.junglecomputing.common_source_identification.cpu;
 
-class Link {
+public class Link {
     int n1, n2;
     double dist;
     int size;

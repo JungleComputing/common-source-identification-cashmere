@@ -30,6 +30,9 @@ import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 
+import nl.junglecomputing.common_source_identification.cpu.FileToImageStage;
+
+
 class ComputeNoisePattern {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ComputeNoisePattern");

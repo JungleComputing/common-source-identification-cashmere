@@ -12,7 +12,7 @@ import nl.junglecomputing.common_source_identification.Version;
 
 public class IO {
 
-        static void writeFiles(CorrelationMatrix correlationMatrix, File[] imageFiles, Version version) throws FileNotFoundException {
+    public static void writeFiles(CorrelationMatrix correlationMatrix, File[] imageFiles, Version version) throws FileNotFoundException {
         PrintStream out = new PrintStream("prnu_" + version + ".out");
 
         double[][] coefficients = correlationMatrix.coefficients;
@@ -27,7 +27,7 @@ public class IO {
     }
     
 
-    static File[] getImageFiles(String nameImageDir) throws IOException {
+    public static File[] getImageFiles(String nameImageDir) throws IOException {
         File imageDir = new File(nameImageDir);
         if (!(imageDir.exists() && imageDir.isDirectory())) {
             throw new IOException(nameImageDir + " is not a valid directory");

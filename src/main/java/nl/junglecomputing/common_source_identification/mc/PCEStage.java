@@ -31,6 +31,8 @@ import ibis.cashmere.constellation.LibFuncLaunch;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Timer;
 
+import nl.junglecomputing.common_source_identification.cpu.Stage;
+
 /*
  * In this stage we compute the Peak-To-Correlation Energy of two noise patterns in the time domain
  */

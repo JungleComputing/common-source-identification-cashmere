@@ -19,8 +19,8 @@ package nl.junglecomputing.common_source_identification.cpu;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class Stage {
+public class Stage {
 
-    static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.Stage");
+    public static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.Stage");
 
 }

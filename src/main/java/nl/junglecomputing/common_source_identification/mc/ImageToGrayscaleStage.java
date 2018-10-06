@@ -26,6 +26,8 @@ import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.constellation.Timer;
 
+import nl.junglecomputing.common_source_identification.cpu.Stage;
+
 class ImageToGrayscaleStage extends Stage {
 
     static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data)

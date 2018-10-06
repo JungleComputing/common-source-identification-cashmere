@@ -16,11 +16,11 @@
 
 package nl.junglecomputing.common_source_identification.cpu;
 
-class CorrelationMatrix implements java.io.Serializable {
+public class CorrelationMatrix implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    double[][] coefficients;
+    public double[][] coefficients;
 
     CorrelationMatrix(int n) {
         coefficients = new double[n][n];

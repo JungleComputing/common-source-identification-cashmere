@@ -10,10 +10,10 @@ import java.awt.image.BufferedImage;
 // simple class to return the height and width of the images that we are
 // correlating.
 public class ImageDims {
-    final int height;
-    final int width;
+    public final int height;
+    public final int width;
 
-    ImageDims(File imageFile) throws IOException {
+    public ImageDims(File imageFile) throws IOException {
 	BufferedImage image = FileToImageStage.readImage(imageFile);
 	height = image.getHeight();
 	width = image.getWidth();

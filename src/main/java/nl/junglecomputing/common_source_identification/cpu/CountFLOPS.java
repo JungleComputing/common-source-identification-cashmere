@@ -63,7 +63,7 @@ public class CountFLOPS {
                 + ((n * (n - 1)) / 2) * flopsPCEQuadratic;
     }
 
-    static void printGFLOPS(int h, int w, int n, int nrNoisePatternsComputed, int nrNoisePatternFreqTransforms, long timeNanos) {
+    public static void printGFLOPS(int h, int w, int n, int nrNoisePatternsComputed, int nrNoisePatternFreqTransforms, long timeNanos) {
         long nrFlopsAchieved = nrFlops(h, w, n, nrNoisePatternsComputed, nrNoisePatternFreqTransforms);
         long nrFlopsActual = nrFlops(h, w, n, n, n);
         double timeSeconds = timeNanos / 1e9;

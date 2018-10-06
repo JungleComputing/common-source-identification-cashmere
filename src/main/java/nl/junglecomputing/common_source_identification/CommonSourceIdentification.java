@@ -25,15 +25,16 @@ public class CommonSourceIdentification {
     public static void main(String[] args) throws NoSuitableExecutorException {
         for (int i = 0; i < args.length; i++) {
 	    if (args[i].equals("-cpu")) {
-
 		nl.junglecomputing.common_source_identification.cpu.CommonSourceIdentification.main(args);
+		break;
 	    } else if (args[i].equals("-mc")) {
 		nl.junglecomputing.common_source_identification.mc.CommonSourceIdentification.main(args);
+		break;
             } else if (args[i].equals("-mainMemCache")) {
 		nl.junglecomputing.common_source_identification.main_mem_cache.CommonSourceIdentification.main(args);
 		break;
             } else {
-                throw new Error("Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu | -mc | -mainMemCache ]");
+                throw new Error(USAGE);
             }
         }
     }
