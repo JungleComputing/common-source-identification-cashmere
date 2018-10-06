@@ -24,18 +24,21 @@ public class CommonSourceIdentification {
 
     public static void main(String[] args) throws NoSuitableExecutorException {
         for (int i = 0; i < args.length; i++) {
-	    if (args[i].equals("-cpu")) {
-		nl.junglecomputing.common_source_identification.cpu.CommonSourceIdentification.main(args);
-		break;
-	    } else if (args[i].equals("-mc")) {
-		nl.junglecomputing.common_source_identification.mc.CommonSourceIdentification.main(args);
-		break;
+            if (args[i].equals("-cpu")) {
+                nl.junglecomputing.common_source_identification.cpu.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-mc")) {
+                nl.junglecomputing.common_source_identification.mc.CommonSourceIdentification.main(args);
+                break;
             } else if (args[i].equals("-mainMemCache")) {
-		nl.junglecomputing.common_source_identification.main_mem_cache.CommonSourceIdentification.main(args);
-		break;
+                nl.junglecomputing.common_source_identification.main_mem_cache.CommonSourceIdentification.main(args);
+                break;
             } else if (args[i].equals("-deviceMemCache")) {
-		nl.junglecomputing.common_source_identification.device_mem_cache.CommonSourceIdentification.main(args);
-		break;
+                nl.junglecomputing.common_source_identification.device_mem_cache.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-remote-activities")) {
+                nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.main(args);
+                break;
             } else {
                 throw new Error(USAGE);
             }
