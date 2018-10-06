@@ -23,12 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Buffer;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
-import ibis.cashmere.constellation.Device;
-import ibis.cashmere.constellation.Kernel;
-import ibis.cashmere.constellation.KernelLaunch;
-import ibis.cashmere.constellation.LibFuncNotAvailable;
 
 class ComputeNoisePattern {
 

@@ -22,11 +22,11 @@ public class CorrelationMatrix implements java.io.Serializable {
 
     public double[][] coefficients;
 
-    CorrelationMatrix(int n) {
+    public CorrelationMatrix(int n) {
         coefficients = new double[n][n];
     }
 
-    void add(Correlation correlation) {
+    public void add(Correlation correlation) {
         coefficients[correlation.i][correlation.j] = correlation.coefficient;
         coefficients[correlation.j][correlation.i] = correlation.coefficient;
     }

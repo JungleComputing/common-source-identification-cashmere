@@ -17,17 +17,16 @@
 package nl.junglecomputing.common_source_identification.main_mem_cache;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import sun.misc.VM;
 
 import ibis.constellation.util.MemorySizes;
+import sun.misc.VM;
 
+@SuppressWarnings("restriction")
 public class CacheConfig {
 
     static Logger logger = CommonSourceIdentification.logger;
-    
-    static int nrNoisePatternsForSpace(long space, long sizeNoisePattern) {
+
+    public static int nrNoisePatternsForSpace(long space, long sizeNoisePattern) {
         return (int) Math.floor(space / (double) sizeNoisePattern);
     }
 

@@ -64,7 +64,7 @@ public class ExecutorData {
     /*
      * The amount of device memory that an executor thread needs.
      */
-    static long memoryForKernelExecutionThread(int h, int w, int nrBlocksForReduce) {
+    public static long memoryForKernelExecutionThread(int h, int w, int nrBlocksForReduce) {
         return h * w * Sizeof.cl_float * 6L + nrBlocksForReduce * Sizeof.cl_double + nrBlocksForReduce * Sizeof.cl_float
                 + (long) Sizeof.cl_int * 5 + h * w * 3;
     }

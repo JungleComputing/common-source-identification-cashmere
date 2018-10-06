@@ -39,8 +39,8 @@ public class ConfigurationFactory {
             StealStrategy localStrategy, StealStrategy remoteStrategy) {
 
         for (int i = 0; i < nrExecutors; i++) {
-            configurations.add(new ConstellationConfiguration(context, myPool, stealsFrom, localStrategy, StealStrategy.SMALLEST,
-                    remoteStrategy));
+            configurations.add(
+                    new ConstellationConfiguration(context, myPool, stealsFrom, localStrategy, localStrategy, remoteStrategy));
         }
     }
 
@@ -50,7 +50,7 @@ public class ConfigurationFactory {
     }
 
     public void createConfigurations(int nrExecutors, StealPool myPool, StealPool stealsFrom, String context) {
-        createConfigurations(nrExecutors, myPool, stealsFrom, new Context(context), StealStrategy.SMALLEST,
+        createConfigurations(nrExecutors, myPool, stealsFrom, new Context(context), StealStrategy.BIGGEST,
                 StealStrategy.SMALLEST);
     }
 

@@ -26,8 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
-
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationConfiguration;
@@ -38,14 +36,11 @@ import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
 import ibis.constellation.util.SingleEventCollector;
-
 import nl.junglecomputing.common_source_identification.Version;
 
-@SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
-
 
     static ConstellationConfiguration[] getConfigurations() {
         int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
@@ -61,8 +56,8 @@ public class CommonSourceIdentification {
         configurationFactory.createConfigurations(1, stealPool, stealPool, new Context(ProgressActivity.LABEL),
                 StealStrategy.BIGGEST, StealStrategy.SMALLEST);
         // ... and one thread for the singleeventcollector.
-        configurationFactory.createConfigurations(1, stealPool, stealPool, new Context(NodeInformation.LABEL), StealStrategy.BIGGEST,
-                StealStrategy.SMALLEST);
+        configurationFactory.createConfigurations(1, stealPool, stealPool, new Context(NodeInformation.LABEL),
+                StealStrategy.BIGGEST, StealStrategy.SMALLEST);
 
         return configurationFactory.getConfigurations();
     }
@@ -80,7 +75,6 @@ public class CommonSourceIdentification {
         return (CorrelationMatrix) sec.waitForEvent().getData();
     }
 
-
     public static void main(String[] args) throws NoSuitableExecutorException {
         // every node in the cluster does the following:
         NodeInformation.setHostName();
@@ -97,11 +91,11 @@ public class CommonSourceIdentification {
         String nameImageDir = "";
 
         for (int i = 0; i < args.length; i++) {
-	    if (args[i].equals("-image-dir")) {
+            if (args[i].equals("-image-dir")) {
                 i++;
                 nameImageDir = args[i];
             } else if (args[i].equals("-cpu")) {
-	    } else {
+            } else {
                 throw new Error(nl.junglecomputing.common_source_identification.CommonSourceIdentification.USAGE);
             }
         }
@@ -121,7 +115,8 @@ public class CommonSourceIdentification {
                 logger.info("CommonSourceIdentification, running with number of nodes: " + nrNodes);
                 logger.info("image-dir: " + nameImageDir);
 
-                logger.info("I am the master, my hostname is: {}, pid: {}", NodeInformation.HOSTNAME, NodeInformation.getProcessId("<PID>"));
+                logger.info("I am the master, my hostname is: {}, pid: {}", NodeInformation.HOSTNAME,
+                        NodeInformation.getProcessId("<PID>"));
 
                 Timer timer = Cashmere.getOverallTimer();
 
@@ -143,12 +138,13 @@ public class CommonSourceIdentification {
 
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
-		
+
                 int n = imageFiles.length;
                 int nrNoisePatternsComputed = (n * (n - 1)) / 2;
                 int nrNoisePatternsTransformed = (n * (n - 1)) / 2;
 
-                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed, timeNanos);
+                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed,
+                        timeNanos);
 
                 // we wait for the progress activity to stop
                 sec.waitForEvent();
@@ -164,7 +160,8 @@ public class CommonSourceIdentification {
             } else {
                 // we are a worker
                 if (logger.isDebugEnabled()) {
-                    logger.debug("I am a worker, my hostname is: {}, my pid is: {}", NodeInformation.HOSTNAME, NodeInformation.getProcessId("<PID>"));
+                    logger.debug("I am a worker, my hostname is: {}, my pid is: {}", NodeInformation.HOSTNAME,
+                            NodeInformation.getProcessId("<PID>"));
                 }
             }
 

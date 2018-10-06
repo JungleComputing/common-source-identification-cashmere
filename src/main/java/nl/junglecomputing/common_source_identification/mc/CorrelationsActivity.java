@@ -18,21 +18,14 @@
 package nl.junglecomputing.common_source_identification.mc;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.jocl.Pointer;
-
-import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
-import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
-
 import nl.junglecomputing.common_source_identification.cpu.Correlation;
 
 public class CorrelationsActivity extends Activity {
@@ -66,31 +59,31 @@ public class CorrelationsActivity extends Activity {
     public int initialize(Constellation constellation) {
         Correlation c = null;
         String executor = constellation.identifier().toString();
-	ExecutorData data = ExecutorData.get(constellation);
-	c = new Correlation(i, j);
-	try {
-	    Device device = Cashmere.getDevice("grayscaleKernel");
-	    ComputeNoisePattern.computePRNU_MC(i, fi, height, width, executor, device, data);
-	    ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq1, height, width, REGULAR, executor, data);
-	    ComputeNoisePattern.computePRNU_MC(j, fj, height, width, executor, device, data);
-	    ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq2, height, width, FLIPPED, executor, data);
-	    c.coefficient = ComputeCorrelation.correlateMC(i, j, data.noisePatternFreq1, data.noisePatternFreq2, height,
-		    width, executor, device, data);
-	} catch (Exception e) {
-	    throw new Error(e);
-	}
-	constellation.send(new Event(identifier(), id, c));
-	return FINISH;
+        ExecutorData data = ExecutorData.get(constellation);
+        c = new Correlation(i, j);
+        try {
+            Device device = Cashmere.getDevice("grayscaleKernel");
+            ComputeNoisePattern.computePRNU_MC(i, fi, height, width, executor, device, data);
+            ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq1, height, width, REGULAR, executor, data);
+            ComputeNoisePattern.computePRNU_MC(j, fj, height, width, executor, device, data);
+            ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq2, height, width, FLIPPED, executor, data);
+            c.coefficient = ComputeCorrelation.correlateMC(i, j, data.noisePatternFreq1, data.noisePatternFreq2, height, width,
+                    executor, device, data);
+        } catch (Exception e) {
+            throw new Error(e);
+        }
+        constellation.send(new Event(identifier(), id, c));
+        return FINISH;
     }
 
     @Override
     public int process(Constellation constellation, Event event) {
-	return FINISH;
+        return FINISH;
     }
 
     @Override
     public void cleanup(Constellation constellation) {
-	// empty
+        // empty
     }
 
 }

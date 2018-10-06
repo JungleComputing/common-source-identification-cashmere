@@ -19,7 +19,7 @@ package nl.junglecomputing.common_source_identification.main_mem_cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class Usage {
+public class Usage {
 
     public static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.Usage");
 

@@ -16,6 +16,8 @@
 
 package nl.junglecomputing.common_source_identification.mc;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.jocl.Pointer;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_event;
@@ -32,6 +34,8 @@ import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Timer;
 
 public class ComputeFrequencyDomain {
+
+    static AtomicInteger transformed = new AtomicInteger(0);
 
     public static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor,
             ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
@@ -60,5 +64,6 @@ public class ComputeFrequencyDomain {
                 .performFFT(queue, h, w, noisePatternFreq, data.temp2, true, numEventsWaitList, event_wait_list, event));
 
         timer.stop(tevent);
+        transformed.incrementAndGet();
     }
 }

@@ -19,17 +19,17 @@ package nl.junglecomputing.common_source_identification.main_mem_cache;
 /*
  * An exception that indicates that we failed to lock a lock.  It also indicates whether a read or write lock failed.
  */
-class LockException extends Exception {
+public class LockException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
-    boolean write;
+    public boolean write;
 
-    LockException(boolean write) {
+    public LockException(boolean write) {
         this.write = write;
     }
 
-    LockException() {
+    public LockException() {
         this(true);
     }
 }
