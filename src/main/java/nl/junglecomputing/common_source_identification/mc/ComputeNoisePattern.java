@@ -33,11 +33,11 @@ import ibis.cashmere.constellation.LibFuncNotAvailable;
 import nl.junglecomputing.common_source_identification.cpu.FileToImageStage;
 
 
-class ComputeNoisePattern {
+public class ComputeNoisePattern {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ComputeNoisePattern");
 
-    static void computePRNU_MC(int index, File file, int h, int w, String executor, Device device, ExecutorData data)
+    public static void computePRNU_MC(int index, File file, int h, int w, String executor, Device device, ExecutorData data)
             throws IOException, CashmereNotAvailable, LibFuncNotAvailable {
 
         if (logger.isDebugEnabled()) {
