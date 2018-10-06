@@ -34,18 +34,6 @@ class ComputeNoisePattern {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ComputeNoisePattern");
 
-    static float[] computePRNU(int index, File file, int h, int w, String executor) throws IOException {
-        float[] dxs = new float[h * w];
-        float[] dys = new float[h * w];
-        Buffer bufferHWRGB = new Buffer(h * w * 3);
-
-        FileToImageStage.execute(file.getPath(), h, w, executor, bufferHWRGB);
-        float[] grayscale = ImageToGrayscaleStage.execute(bufferHWRGB, h, w, executor);
-        float[] withoutNoise = FastNoiseStage.execute(h, w, grayscale, executor, dxs, dys);
-        float[] normalized = ZeroMeanStage.execute(h, w, withoutNoise, executor);
-        return WienerStage.execute(h, w, normalized, executor);
-    }
-
     static void computePRNU_MC(int index, File file, int h, int w, String executor, Device device, ExecutorData data)
             throws IOException, CashmereNotAvailable, LibFuncNotAvailable {
 

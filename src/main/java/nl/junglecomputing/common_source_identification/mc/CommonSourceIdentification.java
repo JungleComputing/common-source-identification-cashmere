@@ -339,11 +339,10 @@ public class CommonSourceIdentification {
     }
 
     static CorrelationMatrix submitCorrelations(SingleEventCollector sec, ActivityIdentifier id, int height, int width,
-            File[] imageFiles, List<String> nodes, boolean runOnMc, boolean useCache) throws NoSuitableExecutorException {
+            File[] imageFiles, List<String> nodes) throws NoSuitableExecutorException {
         for (int i = 0; i < imageFiles.length; i++) {
             for (int j = i + 1; j < imageFiles.length; j++) {
-                CorrelationsActivity ca = new CorrelationsActivity(id, height, width, i, j, imageFiles[i], imageFiles[j], runOnMc,
-                        useCache);
+                CorrelationsActivity ca = new CorrelationsActivity(id, height, width, i, j, imageFiles[i], imageFiles[j]);
                 Cashmere.submit(ca);
             }
         }
@@ -442,9 +441,9 @@ public class CommonSourceIdentification {
 
                 int nrLocalExecutors = getNrExecutors("cashmere.nLocalExecutors", 2);
 
-                if (useCache) {
-                    initializeCache(height, width, nrLocalExecutors);
-                }
+                // if (useCache) {
+                //     initializeCache(height, width, nrLocalExecutors);
+                // }
 
                 Device device = Cashmere.getDevice("grayscaleKernel");
                 // we set the number of blocks for reduction operations to the
@@ -468,15 +467,6 @@ public class CommonSourceIdentification {
                         throw new CLException(CL.stringFor_errorCode(err));
                     }
                 });
-            } else {
-                // Do something with FFT anyway, to make it load the native libraries, which happens in its static initializer.
-                // We need them for reading JPG. Ouch. --Ceriel
-                try {
-                    Class.forName(FFT.class.getName());
-                } catch (ClassNotFoundException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
             }
             Cashmere.initializeLibraries();
             constellation.activate();
@@ -502,8 +492,7 @@ public class CommonSourceIdentification {
 
                 // start activities for all correlations.
 
-                CorrelationMatrix result = submitCorrelations(sec, progressActivityID, height, width, imageFiles, nodes, runOnMc,
-                        useCache);
+                CorrelationMatrix result = submitCorrelations(sec, progressActivityID, height, width, imageFiles, nodes);
                 ArrayList<Link> linkage = Linkage.hierarchical_clustering(result.coefficients);
 
                 timer.stop(eventNo);
@@ -511,21 +500,10 @@ public class CommonSourceIdentification {
 
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
+		
                 int n = imageFiles.length;
-                int nrNoisePatternsComputed = n;
-                int nrNoisePatternsTransformed = n;
-                switch (version) {
-                case CPU:
-                case MC:
-                    nrNoisePatternsComputed = (n * (n - 1)) / 2;
-                    nrNoisePatternsTransformed = (n * (n - 1)) / 2;
-                    break;
-                case USE_CACHE:
-                    nrNoisePatternsComputed = (n * (n - 1)) / 2;
-                    nrNoisePatternsTransformed = nrNoisePatternsComputed;
-                    // TODO: figure out the number of computed and transformed noise patterns
-                    break;
-                }
+                int nrNoisePatternsComputed = (n * (n - 1)) / 2;
+                int nrNoisePatternsTransformed = (n * (n - 1)) / 2;
                 printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed, timeNanos);
 
                 // we wait for the progress activity to stop
@@ -552,16 +530,7 @@ public class CommonSourceIdentification {
             Cashmere.done();
 
             // cleanup
-            if (runOnMc) {
-                Cashmere.deinitializeLibraries();
-                if (useCache) {
-                    clearCaches();
-                }
-            }
-
-            // explicit exit because the FFT library sometimes keeps threads
-            // alive preventing us to exit.
-            System.exit(0);
+	    Cashmere.deinitializeLibraries();
         } catch (IOException | ConstellationCreationException | CashmereNotAvailable e) {
             throw new Error(e);
         }
@@ -583,22 +552,22 @@ public class CommonSourceIdentification {
         return nrNoisePatterns;
     }
 
-    static void initializeCache(int height, int width, int nrThreads) {
-        int sizeNoisePattern = height * width * 4;
+    // static void initializeCache(int height, int width, int nrThreads) {
+    //     int sizeNoisePattern = height * width * 4;
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
-        }
+    //     if (logger.isDebugEnabled()) {
+    //         logger.debug("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
+    //     }
 
-        int memReservedForGrayscale = height * width * 3 * nrThreads;
-        int nrNoisePatternsMemory = getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale);
+    //     int memReservedForGrayscale = height * width * 3 * nrThreads;
+    //     int nrNoisePatternsMemory = getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale);
 
-        NoisePatternCache.initialize(height, width, nrNoisePatternsMemory);
+    //     NoisePatternCache.initialize(height, width, nrNoisePatternsMemory);
 
-    }
+    // }
 
-    static void clearCaches() {
-        NoisePatternCache.clear();
-    }
+    // static void clearCaches() {
+    //     NoisePatternCache.clear();
+    // }
 
 }

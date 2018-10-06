@@ -28,28 +28,6 @@ import ibis.constellation.Timer;
 
 class ImageToGrayscaleStage extends Stage {
 
-    static float[] execute(Buffer image, int h, int w, String executor) {
-        Timer timer = Cashmere.getTimer("java", executor, "convert to grayscale");
-
-        int event = timer.start();
-        ByteBuffer buf = image.getByteBuffer();
-
-        float[] pixelsFloat = new float[h * w];
-
-        for (int i = 0; i < h; i++) {
-            for (int j = 0; j < w; j++) {
-                float r = buf.get((i * w + j) * 3 + 0) & 0xff;
-                float g = buf.get((i * w + j) * 3 + 1) & 0xff;
-                float b = buf.get((i * w + j) * 3 + 2) & 0xff;
-                pixelsFloat[i * w + j] = 0.299f * r + 0.587f * g + 0.114f * b;
-            }
-        }
-
-        timer.stop(event);
-
-        return pixelsFloat;
-    }
-
     static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data)
             throws CashmereNotAvailable {
 
