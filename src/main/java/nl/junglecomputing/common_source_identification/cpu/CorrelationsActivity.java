@@ -64,7 +64,7 @@ public class CorrelationsActivity extends Activity {
         Correlation c = null;
         String executor = constellation.identifier().toString();
 	try {
-	    c = ComputeCPU.computeCorrelation(height, width, i, j, fi, fj, executor);
+	    c = ComputeCorrelation.computeCorrelation(height, width, i, j, fi, fj, executor);
 	} catch (IOException e) {
 	    throw new Error(e);
 	}

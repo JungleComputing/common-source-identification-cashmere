@@ -22,7 +22,7 @@ import java.io.IOException;
 /*
  * Compute everything on the CPU.  CPU computations do not make use of the cache.
  */
-class ComputeCPU {
+class ComputeCorrelation {
 
     static Correlation computeCorrelation(int h, int w, int i, int j, File fi, File fj, String executor) throws IOException {
 
