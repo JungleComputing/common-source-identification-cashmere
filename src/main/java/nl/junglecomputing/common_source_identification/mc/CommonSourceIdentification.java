@@ -55,6 +55,8 @@ import ibis.constellation.util.MemorySizes;
 import ibis.constellation.util.SingleEventCollector;
 import sun.misc.VM;
 
+import nl.junglecomputing.common_source_identification.Version;
+
 @SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
@@ -106,10 +108,6 @@ public class CommonSourceIdentification {
     static final Map<ImageDims, Long> FFT_FLOPS_FORWARD = createFFTFlopsMap(true);
     static final Map<ImageDims, Long> FFT_FLOPS_BACKWARD = createFFTFlopsMap(false);
 
-    // Ceriel, I propose to use an enum for the version, but maybe you want to combine the flags, mc + cached or something?
-    enum Version {
-        CPU, MC, USE_CACHE
-    }
 
     /*
      * Functions for images and results
@@ -181,10 +179,8 @@ public class CommonSourceIdentification {
         return new ImageDims(imageFile);
     }
 
-    static void writeFiles(CorrelationMatrix correlationMatrix, File[] imageFiles, boolean runOnMc) throws FileNotFoundException {
-        String cpuOrMc = runOnMc ? "mc" : "cpu";
-
-        PrintStream out = new PrintStream("prnu_" + cpuOrMc + ".out");
+    static void writeFiles(CorrelationMatrix correlationMatrix, File[] imageFiles, Version version) throws FileNotFoundException {
+        PrintStream out = new PrintStream("prnu_" + version + ".out");
 
         double[][] coefficients = correlationMatrix.coefficients;
 
@@ -391,8 +387,6 @@ public class CommonSourceIdentification {
         // every node in the cluster does the following:
         setHostName();
         int nrNodes = 1;
-        boolean runOnMc = false;
-        boolean useCache = false;
         Version version = Version.MC;
 
         String nt = System.getProperty("ibis.pool.size");
@@ -405,25 +399,12 @@ public class CommonSourceIdentification {
         String nameImageDir = "";
 
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-nrNodes")) {
-                i++;
-                nrNodes = Integer.parseInt(args[i]);
-            } else if (args[i].equals("-image-dir")) {
+	    if (args[i].equals("-image-dir")) {
                 i++;
                 nameImageDir = args[i];
             } else if (args[i].equals("-mc")) {
-                runOnMc = true;
-                version = Version.MC;
-            } else if (args[i].equals("-mainMemCache")) {
-                useCache = true;
-                // useCache implies doing -mc as well
-                runOnMc = true;
-                version = Version.USE_CACHE;
-            } else if (args[i].equals("-cpu")) {
-                runOnMc = false;
-                version = Version.CPU;
             } else {
-                throw new Error("Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu | -mc ]");
+                throw new Error(nl.junglecomputing.common_source_identification.CommonSourceIdentification.USAGE);
             }
         }
 
@@ -436,44 +417,40 @@ public class CommonSourceIdentification {
             Cashmere.initialize(getConfigurations());
             Constellation constellation = Cashmere.getConstellation();
 
-            if (runOnMc) {
-                // if we are running with many-cores enabled
+	    // if we are running with many-cores enabled
 
-                int nrLocalExecutors = getNrExecutors("cashmere.nLocalExecutors", 2);
+	    int nrLocalExecutors = getNrExecutors("cashmere.nLocalExecutors", 2);
 
-                // if (useCache) {
-                //     initializeCache(height, width, nrLocalExecutors);
-                // }
+	    // if (useCache) {
+	    //     initializeCache(height, width, nrLocalExecutors);
+	    // }
 
-                Device device = Cashmere.getDevice("grayscaleKernel");
-                // we set the number of blocks for reduction operations to the
-                // following value
-                int nrBlocksForReduce = 1024;
+	    Device device = Cashmere.getDevice("grayscaleKernel");
+	    // we set the number of blocks for reduction operations to the
+	    // following value
+	    int nrBlocksForReduce = 1024;
 
-                // we initialize for all nrLocalExecutors executors private data
-                ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce);
+	    // we initialize for all nrLocalExecutors executors private data
+	    ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce);
 
-                logger.debug("{} parallel activities", nrLocalExecutors);
+	    logger.debug("{} parallel activities", nrLocalExecutors);
 
-                // we initialize the fft library for the many-core device
-                Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {
-                    int err = FFT.initializeFFT(context, queue, height, width);
-                    if (err != 0) {
-                        throw new CLException(CL.stringFor_errorCode(err));
-                    }
-                }, () -> {
-                    int err = FFT.deinitializeFFT();
-                    if (err != 0) {
-                        throw new CLException(CL.stringFor_errorCode(err));
-                    }
-                });
-            }
+	    // we initialize the fft library for the many-core device
+	    Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {
+			int err = FFT.initializeFFT(context, queue, height, width);
+			if (err != 0) {
+			    throw new CLException(CL.stringFor_errorCode(err));
+			}
+		    }, () -> {
+			int err = FFT.deinitializeFFT();
+			if (err != 0) {
+			    throw new CLException(CL.stringFor_errorCode(err));
+			}
+		    });
             Cashmere.initializeLibraries();
             constellation.activate();
 
             if (constellation.isMaster()) {
-                // this is only executed by the master
-
                 logger.info("CommonSourceIdentification, running with number of nodes: " + nrNodes);
                 logger.info("image-dir: " + nameImageDir);
 
@@ -513,7 +490,7 @@ public class CommonSourceIdentification {
 
                 Timer writeFilesTimer = Cashmere.getTimer("java", "master", "Write files");
                 int writeEvent = writeFilesTimer.start();
-                writeFiles(result, imageFiles, runOnMc);
+                writeFiles(result, imageFiles, version);
                 Linkage.write_linkage(linkage);
                 Linkage.write_flat_clustering(linkage, imageFiles.length);
                 writeFilesTimer.stop(writeEvent);
