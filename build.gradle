@@ -22,6 +22,8 @@ jar {
    }
 }
 
+distZip.dependsOn jar
+distTar.dependsOn jar
 installDist.dependsOn jar
 
 distributions {

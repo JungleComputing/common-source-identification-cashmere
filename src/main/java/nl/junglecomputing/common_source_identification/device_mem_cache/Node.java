@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification;
+package nl.junglecomputing.common_source_identification.device_mem_cache;
 
-public enum Version {
-    CPU, MC, MAIN_MEM_CACHE, DEVICE_MEM_CACHE, REMOTE_ACTIVITIES
+// a node in a doubly linked list to implement a LRU cache
+class Node {
+    Node previous;
+    Node next;
+    int index;
+
+    Node(int index) {
+        this.previous = null;
+        this.next = null;
+        this.index = index;
+    }
+
+    public String toString() {
+        return "" + index;
+    }
 }

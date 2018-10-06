@@ -14,8 +14,28 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification;
+package nl.junglecomputing.common_source_identification.device_mem_cache;
 
-public enum Version {
-    CPU, MC, MAIN_MEM_CACHE, DEVICE_MEM_CACHE, REMOTE_ACTIVITIES
+import java.io.Serializable;
+
+/*
+ * A Correlation holds its coordinates and the coefficient.
+ */
+class Correlation implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    int i;
+    int j;
+    double coefficient;
+
+    Correlation(int i, int j) {
+        this.i = i;
+        this.j = j;
+        this.coefficient = -1.0;
+    }
+
+    public String toString() {
+        return String.format("Correlation: (%d,%d): %f\n", i, j, coefficient);
+    }
 }

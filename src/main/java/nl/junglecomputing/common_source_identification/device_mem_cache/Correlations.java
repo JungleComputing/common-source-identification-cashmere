@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification;
+package nl.junglecomputing.common_source_identification.device_mem_cache;
 
-public enum Version {
-    CPU, MC, MAIN_MEM_CACHE, DEVICE_MEM_CACHE, REMOTE_ACTIVITIES
+import java.util.ArrayList;
+
+class Correlations extends ArrayList<Correlation> {
+
+    private static final long serialVersionUID = 1L;
 }

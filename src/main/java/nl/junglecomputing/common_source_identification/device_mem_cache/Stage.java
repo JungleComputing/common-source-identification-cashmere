@@ -14,8 +14,13 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification;
+package nl.junglecomputing.common_source_identification.device_mem_cache;
 
-public enum Version {
-    CPU, MC, MAIN_MEM_CACHE, DEVICE_MEM_CACHE, REMOTE_ACTIVITIES
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+class Stage {
+
+    static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.Stage");
+
 }
