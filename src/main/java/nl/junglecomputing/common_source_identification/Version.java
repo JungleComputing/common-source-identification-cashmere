@@ -17,5 +17,5 @@
 package nl.junglecomputing.common_source_identification;
 
 public enum Version {
-    CPU, MC, MAIN_MEM_CACHE
+    CPU, MC, MAIN_MEM_CACHE, DEVICE_MEM_CACHE
 }

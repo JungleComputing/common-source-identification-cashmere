@@ -20,7 +20,7 @@ import ibis.constellation.NoSuitableExecutorException;
 
 public class CommonSourceIdentification {
 
-    public static final String USAGE = "Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu -mc -mainMemCache ]";
+    public static final String USAGE = "Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu -mc -mainMemCache -deviceMemCache ]";
 
     public static void main(String[] args) throws NoSuitableExecutorException {
         for (int i = 0; i < args.length; i++) {
@@ -32,6 +32,9 @@ public class CommonSourceIdentification {
 		break;
             } else if (args[i].equals("-mainMemCache")) {
 		nl.junglecomputing.common_source_identification.main_mem_cache.CommonSourceIdentification.main(args);
+		break;
+            } else if (args[i].equals("-deviceMemCache")) {
+		nl.junglecomputing.common_source_identification.device_mem_cache.CommonSourceIdentification.main(args);
 		break;
             } else {
                 throw new Error(USAGE);

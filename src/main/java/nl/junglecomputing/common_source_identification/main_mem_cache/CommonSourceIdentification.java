@@ -104,7 +104,7 @@ public class CommonSourceIdentification {
         // every node in the cluster does the following:
         NodeInformation.setHostName();
         int nrNodes = 1;
-        Version version = Version.MC;
+        Version version = Version.DEVICE_MEM_CACHE;
 
         String nt = System.getProperty("ibis.pool.size");
         if (nt != null) {

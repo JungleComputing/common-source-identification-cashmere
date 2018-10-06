@@ -30,6 +30,8 @@ import ibis.cashmere.constellation.LibFunc;
 import ibis.cashmere.constellation.LibFuncLaunch;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 
+import nl.junglecomputing.common_source_identification.mc.FFT;
+
 class ComputeFrequencyDomain {
 
     static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor,

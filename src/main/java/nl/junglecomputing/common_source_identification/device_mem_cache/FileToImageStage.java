@@ -29,6 +29,8 @@ import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.constellation.Timer;
 
+import nl.junglecomputing.common_source_identification.cpu.ReadJPG;
+
 class FileToImageStage extends Stage {
 
     static BufferedImage readImage(File file) throws IOException {

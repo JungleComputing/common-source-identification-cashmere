@@ -55,6 +55,8 @@ import ibis.constellation.util.MultiEventCollector;
 import ibis.constellation.util.SingleEventCollector;
 import sun.misc.VM;
 
+import nl.junglecomputing.common_source_identification.mc.FFT;
+
 @SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
@@ -262,6 +264,7 @@ public class CommonSourceIdentification {
         // work
         configurationFactory.createConfigurations(1, stealPool, stealPool, HOSTNAME + NotifyParentActivity.LABEL);
         configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, ProgressActivity.LABEL);
+	logger.debug("creating configuration for: {}", HOSTNAME + BarrierActivity.LABEL);
         configurationFactory.createConfigurations(1, stealPool, stealPool, HOSTNAME + BarrierActivity.LABEL);
 
         return configurationFactory.getConfigurations();
@@ -360,6 +363,7 @@ public class CommonSourceIdentification {
      */
 
     static void barrierNode() throws NoSuitableExecutorException {
+	logger.debug("hostname: {}", HOSTNAME);
         Cashmere.submit(new BarrierActivity(HOSTNAME));
     }
 
@@ -374,7 +378,12 @@ public class CommonSourceIdentification {
             Cashmere.submit(new NotifyParentActivity(node, aid, progressActivityID));
         }
 
+	logger.debug("hiero");
+
         mec.waitForEvents();
+
+	logger.debug("na wachten");
+	
     }
 
     static ActivityIdentifier progressActivity(SingleEventCollector sec, int nrImages) throws NoSuitableExecutorException {
@@ -433,7 +442,7 @@ public class CommonSourceIdentification {
             } else if (args[i].equals("-image-dir")) {
                 i++;
                 nameImageDir = args[i];
-            } else if (args[i].equals("-mc")) {
+            } else if (args[i].equals("-deviceMemCache")) {
                 runOnMc = true;
             } else if (args[i].equals("-cpu")) {
                 runOnMc = false;
@@ -450,6 +459,7 @@ public class CommonSourceIdentification {
 
             Cashmere.initialize(getConfigurations(runOnMc));
             Constellation constellation = Cashmere.getConstellation();
+	    constellation.activate();
 
             if (runOnMc) {
                 // if we are running with many-cores enabled
