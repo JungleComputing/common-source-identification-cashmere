@@ -24,13 +24,13 @@ import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 
-class ComputeCorrelation {
+public class ComputeCorrelation {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ComputeCorrelation");
 
     static long timeComputeCorrelations = 0;
 
-    static double correlateMC(int i, int j, Pointer noisePatternI, Pointer noisePatternJ, int h, int w, String executor,
+    public static double correlateMC(int i, int j, Pointer noisePatternI, Pointer noisePatternJ, int h, int w, String executor,
             Device device, ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
 
         if (logger.isDebugEnabled()) {

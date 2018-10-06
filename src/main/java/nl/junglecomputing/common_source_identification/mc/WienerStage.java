@@ -34,7 +34,7 @@ import nl.junglecomputing.common_source_identification.cpu.Stage;
 /*
  * Stage that applies the Wiener filter.
  */
-class WienerStage extends Stage {
+public class WienerStage extends Stage {
 
     public static void executeMC(Device device, int h, int w, String executor, ExecutorData data)
             throws CashmereNotAvailable, LibFuncNotAvailable {

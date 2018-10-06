@@ -33,7 +33,7 @@ import ibis.constellation.Constellation;
  * temporary buffer from a later kernel.  Therefore, we first allocate generic memory that we address with their logical names,
  * logical meaning what this memory means to a specific kernel.
  */
-class ExecutorData {
+public class ExecutorData {
 
     private static Map<Constellation, ExecutorData> executorDataMap = new IdentityHashMap<Constellation, ExecutorData>();
 
@@ -43,7 +43,7 @@ class ExecutorData {
      * At initialization time we don't know yet to which executors this data will mapped, therefore, we store it in a list and
      * defer creating the mapping to a later stage.
      */
-    static synchronized void initialize(int nrExecutors, Device device, int h, int w, int nrBlocksForReduce) {
+    public static synchronized void initialize(int nrExecutors, Device device, int h, int w, int nrBlocksForReduce) {
         for (int i = 0; i < nrExecutors; i++) {
             nonUsedExecutorData.add(new ExecutorData(device, h, w, nrBlocksForReduce));
         }
@@ -52,7 +52,7 @@ class ExecutorData {
     /*
      * Get the executor data with a specific executor.  If an executor does not yet have data, we will assign it data.
      */
-    static synchronized ExecutorData get(Constellation executor) {
+    public static synchronized ExecutorData get(Constellation executor) {
         ExecutorData executorData = executorDataMap.get(executor);
         if (executorData == null) {
             executorData = nonUsedExecutorData.remove(0);
@@ -91,7 +91,7 @@ class ExecutorData {
     // the logical data (where we can choose which actual memory to use)
 
     // FileToImage
-    Buffer imageBuffer;
+    public Buffer imageBuffer;
     Pointer imagePointer;
 
     // ImageToGrayscale
@@ -111,7 +111,7 @@ class ExecutorData {
     // uses data from LeafCorrelationsActivity
 
     // launchToComplex(AndFlip)
-    Pointer noisePattern;
+    public Pointer noisePattern;
     // uses data from LeafCorrelationsActivity
 
     // ifft
@@ -136,8 +136,8 @@ class ExecutorData {
     Pointer tempEnergy;
     Pointer energy;
 
-    Pointer noisePatternFreq1;
-    Pointer noisePatternFreq2;
+    public Pointer noisePatternFreq1;
+    public Pointer noisePatternFreq2;
 
     // the constructor allocates all the data.
     ExecutorData(Device device, int h, int w, int nrBlocksForReduce) {

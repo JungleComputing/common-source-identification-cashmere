@@ -31,9 +31,9 @@ import ibis.cashmere.constellation.LibFuncLaunch;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Timer;
 
-class ComputeFrequencyDomain {
+public class ComputeFrequencyDomain {
 
-    static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor,
+    public static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor,
             ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
 
         Timer timer = Cashmere.getTimer("MC", executor, "computeFreq");

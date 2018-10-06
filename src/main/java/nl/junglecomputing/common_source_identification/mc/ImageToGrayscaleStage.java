@@ -28,9 +28,9 @@ import ibis.constellation.Timer;
 
 import nl.junglecomputing.common_source_identification.cpu.Stage;
 
-class ImageToGrayscaleStage extends Stage {
+public class ImageToGrayscaleStage extends Stage {
 
-    static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data)
+    public static void executeMC(Device device, Buffer image, int h, int w, String executor, ExecutorData data)
             throws CashmereNotAvailable {
 
         Timer timer = Cashmere.getTimer("MC", executor, "convert to grayscale");

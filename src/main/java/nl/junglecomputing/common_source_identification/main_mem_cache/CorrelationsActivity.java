@@ -16,6 +16,12 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 
+import nl.junglecomputing.common_source_identification.cpu.Correlation;
+
+import nl.junglecomputing.common_source_identification.mc.ExecutorData;
+import nl.junglecomputing.common_source_identification.mc.ComputeFrequencyDomain;
+import nl.junglecomputing.common_source_identification.mc.ComputeCorrelation;
+
 public class CorrelationsActivity extends Activity {
 
     private static final long serialVersionUID = 1L;
@@ -31,11 +37,8 @@ public class CorrelationsActivity extends Activity {
     private int j;
     private File fi;
     private File fj;
-    private boolean mc;
-    private boolean useCache;
 
-    public CorrelationsActivity(ActivityIdentifier id, int height, int width, int i, int j, File fi, File fj, boolean runOnMc,
-            boolean useCache) {
+    public CorrelationsActivity(ActivityIdentifier id, int height, int width, int i, int j, File fi, File fj) {
         super(new Context(LABEL, 1), false);
         this.id = id;
         this.height = height;
@@ -44,47 +47,29 @@ public class CorrelationsActivity extends Activity {
         this.j = j;
         this.fi = fi;
         this.fj = fj;
-        this.mc = runOnMc;
-        this.useCache = useCache;
     }
 
     @Override
     public int initialize(Constellation constellation) {
         Correlation c = null;
         String executor = constellation.identifier().toString();
-        if (mc) {
-            ExecutorData data = ExecutorData.get(constellation);
-            c = new Correlation(i, j);
-            try {
-                Device device = Cashmere.getDevice("grayscaleKernel");
-                if (useCache) {
-                    while (!noisePatternOnDevice(executor, i, fi, device, data)) {
-                        // sleep???
-                    }
-                } else {
-                    ComputeNoisePattern.computePRNU_MC(i, fi, height, width, executor, device, data);
-                }
-                ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq1, height, width, REGULAR, executor, data);
-                if (useCache) {
-                    while (!noisePatternOnDevice(executor, j, fj, device, data)) {
-                        // sleep???
-                    }
-                } else {
-                    ComputeNoisePattern.computePRNU_MC(j, fj, height, width, executor, device, data);
-                }
-                ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq2, height, width, FLIPPED, executor, data);
-                c.coefficient = ComputeCorrelation.correlateMC(i, j, data.noisePatternFreq1, data.noisePatternFreq2, height,
-                        width, executor, device, data);
-            } catch (Exception e) {
-                throw new Error(e);
-            }
-        } else {
-            try {
-                c = ComputeCPU.computeCorrelation(height, width, i, j, fi, fj, executor);
-            } catch (IOException e) {
-                throw new Error(e);
-            }
-        }
+	ExecutorData data = ExecutorData.get(constellation);
+	c = new Correlation(i, j);
+	try {
+	    Device device = Cashmere.getDevice("grayscaleKernel");
+	    while (!noisePatternOnDevice(executor, i, fi, device, data)) {
+		// sleep???
+	    }
+	    ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq1, height, width, REGULAR, executor, data);
+	    while (!noisePatternOnDevice(executor, j, fj, device, data)) {
+		// sleep???
+	    }
+	    ComputeFrequencyDomain.computeFreq(device, data.noisePatternFreq2, height, width, FLIPPED, executor, data);
+	    c.coefficient = ComputeCorrelation.correlateMC(i, j, data.noisePatternFreq1, data.noisePatternFreq2, height,
+		    width, executor, device, data);
+	} catch (Exception e) {
+	    throw new Error(e);
+	}
         constellation.send(new Event(identifier(), id, c));
         return FINISH;
     }
