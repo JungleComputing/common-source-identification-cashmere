@@ -35,7 +35,7 @@ anywhere and run with:
 #+begin_src sh
 cp build/distributions/common-source-identification-cashmere.tar /path/of/your/choice
 cd /path/of/your/choice
-tar xf common-source-identificaton-cashmere.tar
+tar xf common-source-identification-cashmere.tar
 #+end_src
 
 Alternatively, the following command installs the distribution in
@@ -94,6 +94,6 @@ telling the applications where the images are and choosing a set of many-core
 devices:
 
 #+begin_src sh
-./bin/common-source-identificaton-cashmere -mc -image-dir images TitanX=1 TitanX-Pascal=1 K20=1
+./bin/common-source-identification-cashmere -mc -image-dir images TitanX=1 TitanX-Pascal=1 K20=1
 #+end_src
 
