@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification;
+package nl.junglecomputing.common_source_identification.device_mem_cache;
 
 import java.time.Duration;
 import java.util.Timer;

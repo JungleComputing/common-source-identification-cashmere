@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification;
+package nl.junglecomputing.common_source_identification.device_mem_cache;
 
 class Link {
     int n1, n2;
