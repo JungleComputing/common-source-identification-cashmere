@@ -36,7 +36,6 @@ abstract class CorrelationsActivity extends Activity {
     // Constellation logic
     static final String LABEL = "correlation";
     protected ActivityIdentifier parent;
-    protected boolean mc;
 
     // logic for subdivision of correlations
     protected List<String> nodes;
@@ -62,7 +61,7 @@ abstract class CorrelationsActivity extends Activity {
     protected int nrCorrelationsToReceive;
 
     CorrelationsActivity(int startI, int endI, int startJ, int endJ, int node1, int node2, int h, int w, List<String> nodes,
-            File[] imageFiles, boolean mc, int level) {
+            File[] imageFiles, int level) {
         /*
          * The images are subdivided over the nodes, for example, 0-25 to node A, 25-50 to B, 50-75 to C, and 75-100 to D.  The
          * correlations (0-25, 0-25) will be assigned to node A, (25-50, 25-50) to B, etc.  Then the correlations (0-25, 25-50)
@@ -73,8 +72,6 @@ abstract class CorrelationsActivity extends Activity {
          * so for example (0-25,0-25) gets assigned to a specific node.  We arrange that in the call to super() below:
          */
         super(node1 == node2 ? new Context(nodes.get(node1) + LABEL, level) : new Context(LABEL, level), true);
-
-        this.mc = mc;
 
         this.nodes = nodes;
         this.node1 = node1;

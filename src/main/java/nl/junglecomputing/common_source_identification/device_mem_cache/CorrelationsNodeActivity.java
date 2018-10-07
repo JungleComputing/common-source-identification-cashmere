@@ -47,8 +47,8 @@ class CorrelationsNodeActivity extends NodeActivity {
     private int nrReceivedCorrelations;
     private Correlations correlations;
 
-    CorrelationsNodeActivity(int h, int w, List<String> nodes, int nodeIndex, File[] imageFiles, boolean mc) {
-        super(h, w, nodes, nodeIndex, imageFiles, mc);
+    CorrelationsNodeActivity(int h, int w, List<String> nodes, int nodeIndex, File[] imageFiles) {
+        super(h, w, nodes, nodeIndex, imageFiles);
 
         correlationsActivities = new ArrayList<CorrelationsActivity>();
         this.correlations = new Correlations();
@@ -107,7 +107,7 @@ class CorrelationsNodeActivity extends NodeActivity {
     // the correlations (startIndex-endIndex, startIndex-endIndex) will be assigned to this node
     private void createCorrelationsActivitySelf() {
         correlationsActivities.add(new TreeCorrelationsActivity(startIndex, endIndex, startIndex, endIndex, nodeIndex, nodeIndex,
-                h, w, nodes, imageFiles, mc, 100));
+                h, w, nodes, imageFiles, 100));
     }
 
     private void createCorrelationsActivity(int tile, int nrNodes) {
@@ -127,10 +127,10 @@ class CorrelationsNodeActivity extends NodeActivity {
 
         if (nrI + nrJ <= CommonSourceIdentification.thresholdDC) {
             correlationsActivities.add(
-                    new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, mc, 0));
+                    new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, 0));
         } else {
             correlationsActivities.add(new TreeCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, node1, node2,
-                    h, w, nodes, imageFiles, mc, 0));
+                    h, w, nodes, imageFiles, 0));
         }
     }
 

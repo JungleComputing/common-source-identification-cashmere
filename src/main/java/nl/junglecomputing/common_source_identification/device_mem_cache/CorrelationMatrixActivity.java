@@ -30,6 +30,12 @@ import ibis.constellation.Context;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
 
+import nl.junglecomputing.common_source_identification.cpu.CorrelationMatrix;
+import nl.junglecomputing.common_source_identification.cpu.Correlation;
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+
+
+
 /*
  * The main activity that will produce the CorrelationMatrix
  */
@@ -48,8 +54,8 @@ class CorrelationMatrixActivity extends Activity {
 
     private int nrReceivedCorrelations;
 
-    CorrelationMatrixActivity(int h, int w, File[] imageFiles, List<String> nodes, boolean mc) {
-        super(new Context(CommonSourceIdentification.LABEL), false, true);
+    CorrelationMatrixActivity(int h, int w, File[] imageFiles, List<String> nodes) {
+        super(new Context(NodeInformation.LABEL), false, true);
 
         this.parent = null;
         this.correlationsNodeActivities = new ArrayList<CorrelationsNodeActivity>();
@@ -57,7 +63,7 @@ class CorrelationMatrixActivity extends Activity {
         this.correlationMatrix = new CorrelationMatrix(imageFiles.length);
 
         for (int i = 0; i < nodes.size(); i++) {
-            correlationsNodeActivities.add(new CorrelationsNodeActivity(h, w, nodes, i, imageFiles, mc));
+            correlationsNodeActivities.add(new CorrelationsNodeActivity(h, w, nodes, i, imageFiles));
         }
 
         this.nodes = nodes;

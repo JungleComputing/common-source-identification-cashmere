@@ -26,6 +26,8 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
 
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+
 /*
  * TreeCorrelationsActivity instances will be subdivided into smaller instances depending on the threshold.  The threshold is
  * determined on initialization and depends on the number of executors and the memory that is available on the many-core device.
@@ -47,11 +49,11 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
     static int submitted = 0;
 
     TreeCorrelationsActivity(int startI, int endI, int startJ, int endJ, int node1, int node2, int h, int w, List<String> nodes,
-            File[] imageFiles, boolean mc, int level) {
-        super(startI, endI, startJ, endJ, node1, node2, h, w, nodes, imageFiles, mc, level);
+            File[] imageFiles, int level) {
+        super(startI, endI, startJ, endJ, node1, node2, h, w, nodes, imageFiles, level);
 
         // the hostname of the node that created this
-        this.nodeCreatorActivity = CommonSourceIdentification.HOSTNAME;
+        this.nodeCreatorActivity = NodeInformation.HOSTNAME;
     }
 
     @Override
@@ -71,7 +73,7 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
             }
 
             logger.debug(String.format("Executing for %s by %s:" + "  (%d-%d), (%d-%d)", node,
-                    CommonSourceIdentification.HOSTNAME, startI, endI, startJ, endJ));
+                    NodeInformation.HOSTNAME, startI, endI, startJ, endJ));
             if (stolenActivity()) {
                 logger.debug("Executing a stolen activity");
             } else {
@@ -164,7 +166,7 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
     // private methods
 
     private boolean stolenActivity() {
-        return !CommonSourceIdentification.HOSTNAME.equals(nodeCreatorActivity);
+        return !NodeInformation.HOSTNAME.equals(nodeCreatorActivity);
     }
 
     private int getNrActivitiesPerIter(int nrActivities, int nrIterations) {
@@ -195,13 +197,13 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
         String kind;
         if (nrActivitiesI + nrActivitiesJ <= CommonSourceIdentification.thresholdDC) {
             // the LeafCorrelationsActivitiy will be assigned to this node
-            activity = new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles, mc,
+            activity = new LeafCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, h, w, nodes, imageFiles,
                     level + 1);
             kind = "Leaf";
         } else {
             // we assign the LeafCorrelationsActivitiy to this node to either node1 or node2
             activity = new TreeCorrelationsActivity(startIndexI, endIndexI, startIndexJ, endIndexJ, node1, node2, h, w, nodes,
-                    imageFiles, mc, level + 1);
+                    imageFiles, level + 1);
             kind = "Tree";
             synchronized (TreeCorrelationsActivity.class) {
                 submitted++;
