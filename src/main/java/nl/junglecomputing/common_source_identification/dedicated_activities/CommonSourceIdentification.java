@@ -67,7 +67,6 @@ import nl.junglecomputing.common_source_identification.mc.FFT;
 import nl.junglecomputing.common_source_identification.remote_activities.CorrelationMatrixActivity;
 import nl.junglecomputing.common_source_identification.remote_activities.NoisePatternCache;
 import nl.junglecomputing.common_source_identification.remote_activities.ProgressActivity;
-import sun.misc.VM;
 
 @SuppressWarnings("restriction")
 public class CommonSourceIdentification {
@@ -142,18 +141,6 @@ public class CommonSourceIdentification {
         }
     }
 
-    static int getNrNoisePatternsMemory(int sizeNoisePattern, long spaceForGrayscale) {
-        long spaceForNoisePatterns = VM.maxDirectMemory() - spaceForGrayscale;
-        int nrNoisePatterns = CacheConfig.nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
-
-        if (logger.isDebugEnabled()) {
-            logger.debug("space for noise patterns: " + MemorySizes.toStringBytes(spaceForNoisePatterns));
-            logger.debug(String.format("The memory will hold a maximum of " + "%d noise patterns", nrNoisePatterns));
-        }
-
-        return nrNoisePatterns;
-    }
-
     static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
         int sizeNoisePattern = height * width * 4;
         int sizeNoisePatternFreq = sizeNoisePattern * 2;
@@ -170,7 +157,8 @@ public class CommonSourceIdentification {
         // to prevent the ByteBufferCache from allocating new buffers when a threshold is reached.
         memReservedForGrayscale += ((long) height) * width * 4 * nByteBuffers;
 
-        int nrNoisePatternsMemory = Math.min(getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale), nImages);
+        int nrNoisePatternsMemory = Math.min(CacheConfig.getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale),
+                nImages);
 
         logger.info("memReservedForGrayscale = " + MemorySizes.toStringBytes(memReservedForGrayscale));
         logger.info("nrNoisePatternsMemory = " + nrNoisePatternsMemory);

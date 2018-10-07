@@ -30,8 +30,8 @@ public class CacheConfig {
         return (int) Math.floor(space / (double) sizeNoisePattern);
     }
 
-    static int getNrNoisePatternsMemory(int sizeNoisePattern, int spaceForGrayscale) {
-        long spaceForNoisePatterns = VM.maxDirectMemory() - spaceForGrayscale;
+    public static int getNrNoisePatternsMemory(int sizeNoisePattern, long memReservedForGrayscale) {
+        long spaceForNoisePatterns = VM.maxDirectMemory() - memReservedForGrayscale;
         int nrNoisePatterns = nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
 
         if (logger.isDebugEnabled()) {
@@ -49,7 +49,7 @@ public class CacheConfig {
             logger.debug("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
         }
 
-        int memReservedForGrayscale = height * width * 3 * nrThreads;
+        long memReservedForGrayscale = height * width * 3 * nrThreads;
         int nrNoisePatternsMemory = getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale);
 
         NoisePatternCache.initialize(height, width, nrNoisePatternsMemory);
