@@ -17,7 +17,10 @@ then
 elif echo "$@" | grep -q -- "-deviceMemCache"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
+elif echo "$@" | grep -q -- "-remote-activities""
+then
+    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
 else
-    echo "Need parameter -cpu, -mc, -mainMemCache, or deviceMemCache"
+    echo "Need parameter -cpu, -mc, -mainMemCache, -deviceMemCache or -remote-activities"
     exit 1
 fi
