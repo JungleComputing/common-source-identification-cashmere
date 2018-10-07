@@ -65,7 +65,6 @@ import nl.junglecomputing.common_source_identification.main_mem_cache.CacheConfi
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
 
-@SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
@@ -117,7 +116,7 @@ public class CommonSourceIdentification {
     }
 
     // get the number of noise patterns that the many-core device can hold
-    static int getNrNoisePatternsDevice(long sizeNoisePattern, long toBeReserved) {
+    public static int getNrNoisePatternsDevice(long sizeNoisePattern, long toBeReserved) {
         try {
             Device device = Cashmere.getDevice("grayscaleKernel");
             long spaceDevice = device.getMemoryCapacity();
@@ -138,7 +137,7 @@ public class CommonSourceIdentification {
         }
     }
 
-    static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
+    public static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
         int sizeNoisePattern = height * width * 4;
         int sizeNoisePatternFreq = sizeNoisePattern * 2;
         logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
@@ -165,7 +164,7 @@ public class CommonSourceIdentification {
         return nrNoisePatternsFreqDevice;
     }
 
-    static void clearCaches() {
+    public static void clearCaches() {
         NoisePatternCache.clear();
     }
 

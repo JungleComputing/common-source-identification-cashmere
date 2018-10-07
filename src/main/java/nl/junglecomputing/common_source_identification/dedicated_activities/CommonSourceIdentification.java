@@ -47,8 +47,6 @@ import ibis.constellation.NoSuitableExecutorException;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
-import ibis.constellation.util.ByteBufferCache;
-import ibis.constellation.util.MemorySizes;
 import ibis.constellation.util.MultiEventCollector;
 import ibis.constellation.util.SingleEventCollector;
 import nl.junglecomputing.common_source_identification.Version;
@@ -61,14 +59,11 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
-import nl.junglecomputing.common_source_identification.main_mem_cache.CacheConfig;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
 import nl.junglecomputing.common_source_identification.remote_activities.CorrelationMatrixActivity;
-import nl.junglecomputing.common_source_identification.remote_activities.NoisePatternCache;
 import nl.junglecomputing.common_source_identification.remote_activities.ProgressActivity;
 
-@SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
@@ -117,59 +112,6 @@ public class CommonSourceIdentification {
                 new Context(GetNoisePatternsActivity.LABEL + NodeInformation.ID), StealStrategy.BIGGEST, StealStrategy.SMALLEST);
 
         return configurationFactory.getConfigurations();
-    }
-
-    // get the number of noise patterns that the many-core device can hold
-    static int getNrNoisePatternsDevice(long sizeNoisePattern, long toBeReserved) {
-        try {
-            Device device = Cashmere.getDevice("grayscaleKernel");
-            long spaceDevice = device.getMemoryCapacity();
-            long spaceForNoisePatterns = spaceDevice - toBeReserved - 500 * MemorySizes.MB;
-
-            int nrNoisePatterns = CacheConfig.nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("device memory: " + MemorySizes.toStringBytes(spaceDevice));
-                logger.debug("to be reserved: " + MemorySizes.toStringBytes(toBeReserved));
-                logger.debug("space for patterns on device: " + MemorySizes.toStringBytes(spaceForNoisePatterns));
-                logger.debug("device holds a maximum of {} noise patterns", nrNoisePatterns);
-            }
-
-            return nrNoisePatterns;
-        } catch (CashmereNotAvailable e) {
-            throw new Error(e);
-        }
-    }
-
-    static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
-        int sizeNoisePattern = height * width * 4;
-        int sizeNoisePatternFreq = sizeNoisePattern * 2;
-        logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
-        logger.info("Size of noise pattern freq: " + MemorySizes.toStringBytes(sizeNoisePatternFreq));
-
-        int nrNoisePatternsFreqDevice = getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
-        long memReservedForGrayscale = height * width * 3 * nrThreads;
-
-        int nByteBuffers = 3 * nrNoisePatternsFreqDevice / 4 + 1;
-        logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
-        ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
-        // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
-        // to prevent the ByteBufferCache from allocating new buffers when a threshold is reached.
-        memReservedForGrayscale += ((long) height) * width * 4 * nByteBuffers;
-
-        int nrNoisePatternsMemory = Math.min(CacheConfig.getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale),
-                nImages);
-
-        logger.info("memReservedForGrayscale = " + MemorySizes.toStringBytes(memReservedForGrayscale));
-        logger.info("nrNoisePatternsMemory = " + nrNoisePatternsMemory);
-
-        NoisePatternCache.initialize(device, height, width, nrNoisePatternsFreqDevice, nrNoisePatternsMemory);
-
-        return nrNoisePatternsFreqDevice;
-    }
-
-    static void clearCaches() {
-        NoisePatternCache.clear();
     }
 
     static CorrelationMatrix submitCorrelations(SingleEventCollector sec, ActivityIdentifier id, ActivityIdentifier progress,
@@ -265,8 +207,8 @@ public class CommonSourceIdentification {
             // we initialize for all executors private data.
             // we need nrLocalExecutors+nrNoisePatternProviders of them,
             ExecutorData.initialize(nWorkers, device, height, width, nrBlocksForReduce);
-            int nrNoisePatternsFreqDevice = initializeCache(device, height, width, memoryToBeReservedPerThread * nWorkers,
-                    nWorkers, imageFiles.length);
+            int nrNoisePatternsFreqDevice = nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification
+                    .initializeCache(device, height, width, memoryToBeReservedPerThread * nWorkers, nWorkers, imageFiles.length);
 
             // we compute a value for the threshold for subdivision of work
             // based on the number of noise patterns on the
@@ -425,7 +367,7 @@ public class CommonSourceIdentification {
             Cashmere.done();
 
             // cleanup
-            clearCaches();
+            nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.clearCaches();
             if (runOnMc) {
                 Cashmere.deinitializeLibraries();
             }
