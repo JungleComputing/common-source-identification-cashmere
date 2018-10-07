@@ -22,7 +22,6 @@ open(filename, 'w') do |f|
   f.puts "CLASSPATH=#{$classpath}:$CLASSPATH srun $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR/bin/run-script " +
     "-XX:MaxDirectMemorySize=50G " +
     "-Dibis.server.address=fs0.das5.cs.vu.nl " +
-    "-Dibis.implementation=smartsockets " +
     "-Dibis.constellation.closed=true " +
     "-Dibis.pool.size=#{$nrNodes} -Dibis.server.port=#{$port} " +
     "-Dibis.pool.name=das5.#{$$} #{$configargs} #{$classname} #{$rest.join(" ")}\n"

@@ -36,7 +36,7 @@ java -classpath $CLASSPATH \
      -Djava.rmi.server.hostname=localhost \
      -Dcom.sun.management.jmxremote.rmi.port=14124 \
      -Dcom.sun.management.jmxremote.local.only=false \
-     -Djava.io.tmpdir=/local/$USER -Dibis.implementation=smartsockets \
+     -Djava.io.tmpdir=/local/$USER \
      -Dibis.constellation.queue.limit=0 \
      -Dibis.constellation.profile=true \
      -Dibis.constellation.profile.output=gantt \
