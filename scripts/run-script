@@ -12,6 +12,11 @@ X${PRUN_CPU_RANK}X$NHOSTS)
     ;;
 esac
 
+case X${PRUN_CPU_RANK} in
+X)  PRUN_CPU_RANK=`hostname`
+    ;;
+esac
+
 echo I am `hostname`
 
 # export LD_PRELOAD=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/amd64/libjsig.so
