@@ -61,16 +61,14 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
-import nl.junglecomputing.common_source_identification.main_mem_cache.CacheConfig;
+import nl.junglecomputing.common_source_identification.device_mem_cache.CacheConfig;
+import nl.junglecomputing.common_source_identification.device_mem_cache.NoisePatternCache;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
 
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
-
-    // constants for setting up Constellation (some are package private)
-    static final String LABEL = "commonSourceIdentification";
 
     // The threshold for this node for device subdivision. This will depend on
     // the number of executes, the amount of memory on
@@ -105,8 +103,8 @@ public class CommonSourceIdentification {
             configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, new Context(ProgressActivity.LABEL),
                     StealStrategy.BIGGEST, StealStrategy.SMALLEST);
             // ... and one thread for the singleeventcollector.
-            configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, new Context(LABEL), StealStrategy.BIGGEST,
-                    StealStrategy.SMALLEST);
+            configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, new Context(NodeInformation.LABEL),
+                    StealStrategy.BIGGEST, StealStrategy.SMALLEST);
         }
 
         configurationFactory.createConfigurations(nrNoisePatternProviders, stealPool, stealPool,
@@ -115,35 +113,13 @@ public class CommonSourceIdentification {
         return configurationFactory.getConfigurations();
     }
 
-    // get the number of noise patterns that the many-core device can hold
-    public static int getNrNoisePatternsDevice(long sizeNoisePattern, long toBeReserved) {
-        try {
-            Device device = Cashmere.getDevice("grayscaleKernel");
-            long spaceDevice = device.getMemoryCapacity();
-            long spaceForNoisePatterns = spaceDevice - toBeReserved - 500 * MemorySizes.MB;
-
-            int nrNoisePatterns = CacheConfig.nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("device memory: " + MemorySizes.toStringBytes(spaceDevice));
-                logger.debug("to be reserved: " + MemorySizes.toStringBytes(toBeReserved));
-                logger.debug("space for patterns on device: " + MemorySizes.toStringBytes(spaceForNoisePatterns));
-                logger.debug("device holds a maximum of {} noise patterns", nrNoisePatterns);
-            }
-
-            return nrNoisePatterns;
-        } catch (CashmereNotAvailable e) {
-            throw new Error(e);
-        }
-    }
-
     public static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
         int sizeNoisePattern = height * width * 4;
         int sizeNoisePatternFreq = sizeNoisePattern * 2;
         logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
         logger.info("Size of noise pattern freq: " + MemorySizes.toStringBytes(sizeNoisePatternFreq));
 
-        int nrNoisePatternsFreqDevice = getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
+        int nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
         long memReservedForGrayscale = height * width * 3 * nrThreads;
 
         int nByteBuffers = 3 * nrNoisePatternsFreqDevice / 4 + 1;
@@ -336,7 +312,7 @@ public class CommonSourceIdentification {
 
                 // we start a progress activity that notifies once in a while
                 // how many of the total correlations have been done
-                SingleEventCollector sec = new SingleEventCollector(new Context(LABEL));
+                SingleEventCollector sec = new SingleEventCollector(new Context(NodeInformation.LABEL));
                 int nrImages = imageFiles.length;
 
                 int nrCorrelations = ((nrImages - 1) * nrImages) / 2;
@@ -357,7 +333,7 @@ public class CommonSourceIdentification {
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
 
-                MultiEventCollector statisticsCollector = new MultiEventCollector(new Context(LABEL), nrNodes);
+                MultiEventCollector statisticsCollector = new MultiEventCollector(new Context(NodeInformation.LABEL), nrNodes);
                 ActivityIdentifier sid = Cashmere.submit(statisticsCollector);
                 for (int i = 0; i < nrNodes; i++) {
                     Activity getStats = new GetStatsActivity(sid, i);

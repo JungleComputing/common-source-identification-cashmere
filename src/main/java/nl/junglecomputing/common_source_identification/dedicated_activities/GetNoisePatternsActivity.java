@@ -15,11 +15,11 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 import ibis.constellation.Timer;
+import nl.junglecomputing.common_source_identification.device_mem_cache.LockToken;
+import nl.junglecomputing.common_source_identification.device_mem_cache.NoisePatternCache;
 import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
 import nl.junglecomputing.common_source_identification.mc.ComputeNoisePattern;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
-import nl.junglecomputing.common_source_identification.remote_activities.LockToken;
-import nl.junglecomputing.common_source_identification.remote_activities.NoisePatternCache;
 
 /**
  * This Activity's only task is to wait for requests for time domain noise patterns, compute them, and send them back.

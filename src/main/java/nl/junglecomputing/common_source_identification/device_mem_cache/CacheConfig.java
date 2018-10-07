@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
-
 import ibis.constellation.util.MemorySizes;
 import sun.misc.VM;
 
@@ -56,7 +55,7 @@ public class CacheConfig {
         }
     }
 
-    static int getNrNoisePatternsMemory(int sizeNoisePattern, int spaceForGrayscale) {
+    public static int getNrNoisePatternsMemory(int sizeNoisePattern, long spaceForGrayscale) {
         long spaceForNoisePatterns = VM.maxDirectMemory() - spaceForGrayscale;
         int nrNoisePatterns = nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
 

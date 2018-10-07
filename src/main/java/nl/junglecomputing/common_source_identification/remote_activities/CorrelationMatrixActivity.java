@@ -28,6 +28,7 @@ import ibis.constellation.Context;
 import ibis.constellation.Event;
 import nl.junglecomputing.common_source_identification.cpu.Correlation;
 import nl.junglecomputing.common_source_identification.cpu.CorrelationMatrix;
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
 
 /*
  * The activity that will collect the CorrelationMatrix.
@@ -48,7 +49,7 @@ public class CorrelationMatrixActivity extends Activity {
     private final int nImages;
 
     public CorrelationMatrixActivity(ActivityIdentifier parent, int nImages) {
-        super(new Context(CommonSourceIdentification.LABEL), false, true);
+        super(new Context(NodeInformation.LABEL), false, true);
 
         this.nImages = nImages;
         this.parent = parent;

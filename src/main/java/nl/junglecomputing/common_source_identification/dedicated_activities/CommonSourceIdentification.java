@@ -68,9 +68,6 @@ public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
 
-    // constants for setting up Constellation (some are package private)
-    static final String LABEL = "commonSourceIdentification";
-
     // The threshold for this node for device subdivision. This will depend on
     // the number of executes, the amount of memory on
     // the many-core device. Initially, we set it to a very conservative value.
@@ -104,8 +101,8 @@ public class CommonSourceIdentification {
             configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, new Context(ProgressActivity.LABEL),
                     StealStrategy.BIGGEST, StealStrategy.SMALLEST);
             // ... and one thread for the eventcollector(s)
-            configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, new Context(LABEL), StealStrategy.BIGGEST,
-                    StealStrategy.SMALLEST);
+            configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, new Context(NodeInformation.LABEL),
+                    StealStrategy.BIGGEST, StealStrategy.SMALLEST);
         }
 
         configurationFactory.createConfigurations(nrNoisePatternProviders, stealPool, stealPool,
@@ -253,7 +250,7 @@ public class CommonSourceIdentification {
                 // Start activities for noise pattern providers.
                 ActivityIdentifier[][] providers = new ActivityIdentifier[nrNodes][nrNoisePatternProviders];
 
-                MultiEventCollector providerCollector = new MultiEventCollector(new Context(LABEL),
+                MultiEventCollector providerCollector = new MultiEventCollector(new Context(NodeInformation.LABEL),
                         nrNodes * nrNoisePatternProviders);
                 ActivityIdentifier cid = Cashmere.submit(providerCollector);
                 for (int i = 0; i < nrNodes; i++) {
@@ -299,7 +296,7 @@ public class CommonSourceIdentification {
 
                 // we start a progress activity that notifies once in a while
                 // how many of the total correlations have been done
-                SingleEventCollector sec = new SingleEventCollector(new Context(LABEL));
+                SingleEventCollector sec = new SingleEventCollector(new Context(NodeInformation.LABEL));
                 int nrImages = imageFiles.length;
 
                 int nrCorrelations = ((nrImages - 1) * nrImages) / 2;
@@ -320,7 +317,7 @@ public class CommonSourceIdentification {
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
 
-                MultiEventCollector statisticsCollector = new MultiEventCollector(new Context(LABEL), nrNodes);
+                MultiEventCollector statisticsCollector = new MultiEventCollector(new Context(NodeInformation.LABEL), nrNodes);
                 ActivityIdentifier sid = Cashmere.submit(statisticsCollector);
                 for (int i = 0; i < nrNodes; i++) {
                     Activity getStats = new GetStatsActivity(sid, i, providers[i]);

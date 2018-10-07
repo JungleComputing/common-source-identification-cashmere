@@ -39,13 +39,13 @@ import ibis.constellation.Timer;
 import ibis.constellation.util.ByteBufferCache;
 import nl.junglecomputing.common_source_identification.cpu.Correlation;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.device_mem_cache.LockToken;
+import nl.junglecomputing.common_source_identification.device_mem_cache.NoisePatternCache;
 import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
 import nl.junglecomputing.common_source_identification.mc.ComputeCorrelation;
 import nl.junglecomputing.common_source_identification.mc.ComputeFrequencyDomain;
 import nl.junglecomputing.common_source_identification.mc.ComputeNoisePattern;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
-import nl.junglecomputing.common_source_identification.remote_activities.LockToken;
-import nl.junglecomputing.common_source_identification.remote_activities.NoisePatternCache;
 
 /*
  * LeafCorelationsActivity is the leaf node in the tree of CorrelationsActivities and performs the actual correlations.  This

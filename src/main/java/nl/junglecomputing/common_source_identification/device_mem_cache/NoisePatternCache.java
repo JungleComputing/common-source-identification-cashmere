@@ -26,9 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Device;
-
-import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
 import nl.junglecomputing.common_source_identification.main_mem_cache.Cache;
+import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
 
 /**
  * The NoisePatternCache is a cache for noise patterns that allows threads to lock a specific noise pattern. The NoisePatternCache
@@ -41,7 +40,7 @@ import nl.junglecomputing.common_source_identification.main_mem_cache.Cache;
  * The locks are reentrant read/write locks, to make sure that multiple threads can read the noise pattern, but only one can write
  * it.
  */
-class NoisePatternCache {
+public class NoisePatternCache {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.NoisePatternCache");
 
@@ -91,7 +90,7 @@ class NoisePatternCache {
      * @param nrNoisePatterns
      *            the number of noise patterns in time domain
      */
-    static void initialize(Device device, int height, int width, int nrNoisePatternsFreq, int nrNoisePatterns) {
+    public static void initialize(Device device, int height, int width, int nrNoisePatternsFreq, int nrNoisePatterns) {
         noisePatternsFreqRegular = new Cache<Pointer>("device freq regular");
         noisePatternsFreqFlipped = new Cache<Pointer>("device freq flipped");
         noisePatterns = new Cache<Buffer>("memory");
@@ -127,11 +126,24 @@ class NoisePatternCache {
      * @exception LockException
      *                if the lock cannot be obtained
      */
-    static LockToken<Buffer> lockNoisePattern(int index) throws LockException {
+    public static LockToken<Buffer> lockNoisePattern(int index) throws LockException {
         if (logger.isDebugEnabled()) {
             logger.debug("Trying to lock noise pattern {}", index);
         }
         return lock(index, TIME_DOMAIN_NOISE_PATTERN, noisePatternLocks, noisePatterns);
+    }
+
+    /**
+     * Move a write lock to read lock of noise pattern.
+     *
+     * @param index
+     *            the noise pattern
+     */
+    public static void toReadLockNoisePattern(int index) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("Moving write to read lock for {}", index);
+        }
+        toReadLock(index, TIME_DOMAIN_NOISE_PATTERN, noisePatternLocks, noisePatterns);
     }
 
     /**
@@ -140,7 +152,7 @@ class NoisePatternCache {
      * @param index
      *            the noise pattern to unlock
      */
-    static void unlockNoisePattern(int index) {
+    public static void unlockNoisePattern(int index) {
         if (logger.isDebugEnabled()) {
             logger.debug("Unlocking noise pattern {}", index);
         }
@@ -161,7 +173,7 @@ class NoisePatternCache {
      * @exception LockException
      *                if the lock cannot be obtained
      */
-    static LockToken<Pointer> lockNoisePatternFreq(int index, boolean flipped) throws LockException {
+    public static LockToken<Pointer> lockNoisePatternFreq(int index, boolean flipped) throws LockException {
         if (logger.isDebugEnabled()) {
             logger.debug("Trying to lock noise pattern freq {} {}", index, string(flipped));
         }
@@ -180,7 +192,7 @@ class NoisePatternCache {
      * @param flipped
      *            whether the noise pattern is flipped or regular
      */
-    static void toReadLockNoisePatternFreq(int index, boolean flipped) {
+    public static void toReadLockNoisePatternFreq(int index, boolean flipped) {
         if (logger.isDebugEnabled()) {
             logger.debug("Moving write to read lock for {} freq {}", index, string(flipped));
         }
@@ -199,7 +211,7 @@ class NoisePatternCache {
      * @param flipped
      *            whether the noise pattern is flipped or regular
      */
-    static void unlockNoisePatternFreqRemove(int index, boolean flipped) {
+    public static void unlockNoisePatternFreqRemove(int index, boolean flipped) {
         if (logger.isDebugEnabled()) {
             logger.debug("Unlocking noise pattern {} freq {} to remove", index, string(flipped));
         }
@@ -218,7 +230,7 @@ class NoisePatternCache {
      * @param flipped
      *            whether the nosie pattern is flipped or not
      */
-    static void unlockNoisePatternFreq(int index, boolean flipped) {
+    public static void unlockNoisePatternFreq(int index, boolean flipped) {
         if (logger.isDebugEnabled()) {
             logger.debug("Unlocking noise pattern {} freq {}", index, string(flipped));
         }
@@ -237,7 +249,7 @@ class NoisePatternCache {
      * @param device
      *            the device
      */
-    static void setDevice(int index, Device device) {
+    public static void setDevice(int index, Device device) {
         deviceMap.put(index, device);
     }
 
@@ -245,7 +257,7 @@ class NoisePatternCache {
      * Clear the cache.
      *
      */
-    static void clear() {
+    public static void clear() {
     }
 
     // private methods
