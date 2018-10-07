@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Device;
 
+import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
+
 /**
  * The NoisePatternCache is a cache for noise patterns that allows threads to lock a specific noise pattern. The NoisePatternCache
  * keeps track of three types of noise patterns in different memories: - the actual noise patterns, in time domain, kept in the

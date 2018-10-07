@@ -18,6 +18,9 @@ package nl.junglecomputing.common_source_identification.device_mem_cache;
 
 import java.util.ArrayList;
 
+import nl.junglecomputing.common_source_identification.cpu.Correlation;
+
+
 class Correlations extends ArrayList<Correlation> {
 
     private static final long serialVersionUID = 1L;

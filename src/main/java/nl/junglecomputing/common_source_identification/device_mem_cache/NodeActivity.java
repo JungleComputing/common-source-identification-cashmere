@@ -41,13 +41,12 @@ abstract class NodeActivity extends Activity {
     protected int nrImages;
     protected int h;
     protected int w;
-    protected boolean mc;
 
     protected int nodeIndex;
     protected int startIndex;
     protected int endIndex;
 
-    NodeActivity(int h, int w, List<String> nodes, int nodeIndex, File[] imageFiles, boolean mc) {
+    NodeActivity(int h, int w, List<String> nodes, int nodeIndex, File[] imageFiles) {
         super(new Context(nodes.get(nodeIndex) + LABEL), true, true);
 
         this.parent = null;
@@ -57,7 +56,6 @@ abstract class NodeActivity extends Activity {
         this.nrImages = imageFiles.length;
         this.h = h;
         this.w = w;
-        this.mc = mc;
 
         this.nodeIndex = nodeIndex;
 

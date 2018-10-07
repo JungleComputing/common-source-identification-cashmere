@@ -34,6 +34,16 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Event;
 import ibis.constellation.Timer;
 
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.cpu.Correlation;
+
+import nl.junglecomputing.common_source_identification.mc.ComputeCorrelation;
+import nl.junglecomputing.common_source_identification.mc.ComputeNoisePattern;
+import nl.junglecomputing.common_source_identification.mc.ComputeFrequencyDomain;
+import nl.junglecomputing.common_source_identification.mc.ExecutorData;
+
+import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
+
 /*
  * LeafCorelationsActivity is the leaf node in the tree of CorrelationsActivities and performs the actual correlations.  This
  * activity will always execute on the node where it was created.  An instace of this class produces noise patterns, noise
@@ -83,11 +93,11 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
      * Create a LeafCorrelationsActivity with the i and j range indicated by startI, endI, etc.
      */
     LeafCorrelationsActivity(int startI, int endI, int startJ, int endJ, int h, int w, List<String> nodes, File[] imageFiles,
-            boolean mc, int level) {
+            int level) {
 
         // made node2 node1 always equal, to trigger the fact that this should be local.
-        super(startI, endI, startJ, endJ, CommonSourceIdentification.ID, CommonSourceIdentification.ID, h, w, nodes, imageFiles,
-                mc, level);
+        super(startI, endI, startJ, endJ, NodeInformation.ID, NodeInformation.ID, h, w, nodes, imageFiles,
+                level);
 
         this.nrNoisePatternsX = endI - startI;
         this.noisePatternsXFreq = new Pointer[nrNoisePatternsX];
@@ -103,7 +113,7 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
                 inFlight++;
                 logger.debug("{} in flight", inFlight);
             }
-            logger.debug("Executing LeafCorrelationsActivity for node {} by {}", nodeName1, CommonSourceIdentification.HOSTNAME);
+            logger.debug("Executing LeafCorrelationsActivity for node {} by {}", nodeName1, NodeInformation.HOSTNAME);
             logger.debug(String.format("  (%d-%d),(%d-%d)", startI, endI, startJ, endJ));
         }
 
@@ -111,36 +121,28 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
         this.timer = Cashmere.getTimer("java", executor, "leaf correlations");
         this.event = timer.start();
 
-        if (mc) {
-            // we retrieve the data for this executor
-            data = ExecutorData.get(cons);
+	// we retrieve the data for this executor
+	data = ExecutorData.get(cons);
 
-            try {
-                // Since we want to produce many kernels on the same device, we pick the device based on some kernel
-                Device device = Cashmere.getDevice("grayscaleKernel");
+	try {
+	    // Since we want to produce many kernels on the same device, we pick the device based on some kernel
+	    Device device = Cashmere.getDevice("grayscaleKernel");
 
-                boolean both = startI == startJ;
+	    boolean both = startI == startJ;
 
-                if (both) {
-                    // we need both the regular and flipped frequency domains as the i and j range overlap
-                    retrieveFrequencyDomain(cons, startI, endI, false, both, device);
-                } else {
-                    retrieveFrequencyDomain(cons, startI, endI, REGULAR, both, device);
-                    retrieveFrequencyDomain(cons, startJ, endJ, FLIPPED, both, device);
-                }
+	    if (both) {
+		// we need both the regular and flipped frequency domains as the i and j range overlap
+		retrieveFrequencyDomain(cons, startI, endI, false, both, device);
+	    } else {
+		retrieveFrequencyDomain(cons, startI, endI, REGULAR, both, device);
+		retrieveFrequencyDomain(cons, startJ, endJ, FLIPPED, both, device);
+	    }
 
-                computeCorrelations(cons, startI, endI, startJ, endJ, device);
+	    computeCorrelations(cons, startI, endI, startJ, endJ, device);
 
-            } catch (IOException | CashmereNotAvailable | LibFuncNotAvailable e) {
-                throw new Error(e);
-            }
-        } else {
-            try {
-                ComputeCPU.computeCorrelations(correlations, h, w, imageFiles, startI, endI, startJ, endJ, executor);
-            } catch (IOException e) {
-                throw new Error(e);
-            }
-        }
+	} catch (IOException | CashmereNotAvailable | LibFuncNotAvailable e) {
+	    throw new Error(e);
+	}
 
         return FINISH;
     }

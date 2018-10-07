@@ -23,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nl.junglecomputing.common_source_identification.main_mem_cache.Usage;
+
 /*
  * This class represents a Cache with an array of elements of type T that represents the memory.  The memory is accessed by means
  * of indices, that we will name memoryIndices.  The items that go into this cache are assumed to have indices as well and we are

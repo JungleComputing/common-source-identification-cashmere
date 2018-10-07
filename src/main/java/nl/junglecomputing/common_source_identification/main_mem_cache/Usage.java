@@ -29,25 +29,25 @@ public class Usage {
 
     private String description;
 
-    Usage(int maxNrItems, String description) {
+    public Usage(int maxNrItems, String description) {
         initialize();
         setMaxNrItems(maxNrItems);
         this.description = description;
     }
 
-    void initialize() {
+    public void initialize() {
         locked = new Nodes();
         victims = new Nodes();
     }
 
-    void setMaxNrItems(int maxNrItems) {
+    public void setMaxNrItems(int maxNrItems) {
         this.maxNrItems = maxNrItems;
         if (logger.isDebugEnabled()) {
             logger.debug("{}: Setting the cache to {} items", description, maxNrItems);
         }
     }
 
-    void markLocked(int index) {
+    public void markLocked(int index) {
         Node node = victims.remove(index);
         if (node == null) {
             locked.addToHead(index);
@@ -61,7 +61,7 @@ public class Usage {
         }
     }
 
-    void markFromLockedToVictim(int index) {
+    public void markFromLockedToVictim(int index) {
         Node node = locked.remove(index);
         victims.addToHead(node);
         if (logger.isDebugEnabled()) {
@@ -71,7 +71,7 @@ public class Usage {
         }
     }
 
-    int findEvictionCandidate() {
+    public int findEvictionCandidate() {
         if (maximumAchieved()) {
             int index = victims.getTailIndex();
             if (logger.isDebugEnabled()) {
@@ -84,7 +84,7 @@ public class Usage {
         return -1;
     }
 
-    void evict(int index) {
+    public void evict(int index) {
         victims.remove(index);
         // if (logger.isDebugEnabled()) {
         // logger.debug("{}: evicted {}", description, index);
