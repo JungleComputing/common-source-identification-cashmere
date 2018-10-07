@@ -20,7 +20,7 @@ import java.util.ArrayList;
 
 import nl.junglecomputing.common_source_identification.cpu.Correlation;
 
-class Correlations extends ArrayList<Correlation> {
+public class Correlations extends ArrayList<Correlation> {
 
     private static final long serialVersionUID = 1L;
 }

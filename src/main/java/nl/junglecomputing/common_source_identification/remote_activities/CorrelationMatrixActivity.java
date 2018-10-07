@@ -32,7 +32,7 @@ import nl.junglecomputing.common_source_identification.cpu.CorrelationMatrix;
 /*
  * The activity that will collect the CorrelationMatrix.
  */
-class CorrelationMatrixActivity extends Activity {
+public class CorrelationMatrixActivity extends Activity {
 
     private static final long serialVersionUID = 1L;
 
@@ -47,7 +47,7 @@ class CorrelationMatrixActivity extends Activity {
     private transient int toReceive;
     private final int nImages;
 
-    CorrelationMatrixActivity(ActivityIdentifier parent, int nImages) {
+    public CorrelationMatrixActivity(ActivityIdentifier parent, int nImages) {
         super(new Context(CommonSourceIdentification.LABEL), false, true);
 
         this.nImages = nImages;

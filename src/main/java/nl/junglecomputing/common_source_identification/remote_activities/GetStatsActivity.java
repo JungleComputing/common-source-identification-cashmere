@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification.dedicated_activities;
+package nl.junglecomputing.common_source_identification.remote_activities;
 
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
@@ -29,20 +29,14 @@ class GetStatsActivity extends Activity {
     private static final long serialVersionUID = 1L;
 
     private final ActivityIdentifier parent;
-    private final ActivityIdentifier[] toStop;
 
-    // Added functionality: sends null to the dedicated GetNoisePatternActivities, to stop them.
-    public GetStatsActivity(ActivityIdentifier id, int host, ActivityIdentifier[] toStop) {
+    public GetStatsActivity(ActivityIdentifier id, int host) {
         super(new Context(GetNoisePatternsActivity.LABEL + host, 1), false);
         this.parent = id;
-        this.toStop = toStop;
     }
 
     @Override
     public int initialize(Constellation constellation) {
-        for (ActivityIdentifier id : toStop) {
-            constellation.send(new Event(identifier(), id, null));
-        }
         constellation.send(new Event(identifier(), parent, new int[] { ComputeNoisePattern.patternsComputed.getAndSet(0),
                 ComputeFrequencyDomain.transformed.getAndSet(0), GetNoisePatternsActivity.countFetched.getAndSet(0) }));
         return FINISH;

@@ -36,13 +36,13 @@ import ibis.constellation.Event;
  * progress.
  */
 
-class ProgressActivity extends Activity {
+public class ProgressActivity extends Activity {
 
     private static final long serialVersionUID = 1L;
 
     public static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ProgressActivity");
 
-    static final String LABEL = "ProgressActivity";
+    public static final String LABEL = "ProgressActivity";
     static final int PERIOD = 10000; // 10 seconds
 
     // administration of the number of correlations
@@ -92,7 +92,7 @@ class ProgressActivity extends Activity {
         return duration.toString().substring(2).replaceAll("(\\d[HMS])(?!$)", "$1 ").toLowerCase();
     }
 
-    ProgressActivity(int nrCorrelationsToReceive) {
+    public ProgressActivity(int nrCorrelationsToReceive) {
         super(new Context(ProgressActivity.LABEL), true, true);
 
         this.nrCorrelationsToReceive = nrCorrelationsToReceive;

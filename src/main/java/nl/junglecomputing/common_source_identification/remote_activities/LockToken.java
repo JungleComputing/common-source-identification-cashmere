@@ -16,30 +16,30 @@
 
 package nl.junglecomputing.common_source_identification.remote_activities;
 
-class LockToken<T> {
+public class LockToken<T> {
     final int index;
     final int victim;
     final boolean flipped;
-    T availableElement;
+    public T availableElement;
 
     private final boolean writeLock;
 
-    LockToken(int index, boolean flipped, boolean writeLock) {
+    public LockToken(int index, boolean flipped, boolean writeLock) {
         this(index, -1, flipped, writeLock);
     }
 
-    LockToken(int index, int victim, boolean flipped, boolean writeLock) {
+    public LockToken(int index, int victim, boolean flipped, boolean writeLock) {
         this.index = index;
         this.victim = victim;
         this.flipped = flipped;
         this.writeLock = writeLock;
     }
 
-    boolean readLock() {
+    public boolean readLock() {
         return !writeLock;
     }
 
-    boolean writeLock() {
+    public boolean writeLock() {
         return writeLock;
     }
 }
