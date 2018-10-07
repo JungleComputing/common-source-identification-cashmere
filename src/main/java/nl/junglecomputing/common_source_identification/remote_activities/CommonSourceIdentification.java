@@ -215,7 +215,6 @@ public class CommonSourceIdentification {
         // every node in the cluster does the following:
         NodeInformation.setHostName();
         int nrNodes = 1;
-        boolean runOnMc = false;
 
         String nt = System.getProperty("ibis.pool.size");
         if (nt != null) {
@@ -405,9 +404,7 @@ public class CommonSourceIdentification {
 
             // cleanup
             clearCaches();
-            if (runOnMc) {
-                Cashmere.deinitializeLibraries();
-            }
+            Cashmere.deinitializeLibraries();
 
             // explicit exit because the FFT library sometimes keeps threads
             // alive preventing us to exit.
