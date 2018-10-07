@@ -26,7 +26,10 @@ then
 elif echo "$@" | grep -q -- "-relaxed"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=ib"
+elif echo "$@" | grep -q -- "-multipleGPUs"
+then
+    config_args="-Dcashmere.nLocalExecutors=6,-Xmx5G,-Dibis.implementation=ib"
 else
-    echo "Need parameter -cpu, -mc, -mainMemCache, -deviceMemCache, -remote-activities, -dedicated-activities or relaxed"
+    echo "Need parameter -cpu, -mc, -mainMemCache, -deviceMemCache, -remote-activities, -dedicated-activities, relaxed, or -multipleGPUs"
     exit 1
 fi

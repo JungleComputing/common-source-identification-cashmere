@@ -45,7 +45,7 @@ public class ExecutorData {
      */
     public static synchronized void initialize(int nrExecutors, Device device, int h, int w, int nrBlocksForReduce) {
         for (int i = 0; i < nrExecutors; i++) {
-            nonUsedExecutorData.add(new ExecutorData(device, h, w, nrBlocksForReduce));
+            nonUsedExecutorData.add(new ExecutorData(device, new Buffer(h * w * 3), h, w, nrBlocksForReduce));
         }
     }
 
@@ -140,7 +140,7 @@ public class ExecutorData {
     public Pointer noisePatternFreq2;
 
     // the constructor allocates all the data.
-    ExecutorData(Device device, int h, int w, int nrBlocksForReduce) {
+    public ExecutorData(Device device, Buffer bufferHWRGB, int h, int w, int nrBlocksForReduce) {
         this.device = device;
         this.nrBlocksForReduce = nrBlocksForReduce;
 

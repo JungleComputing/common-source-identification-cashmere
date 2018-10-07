@@ -17,9 +17,9 @@
 package nl.junglecomputing.common_source_identification.device_mem_cache;
 
 public class LockToken<T> {
-    final int index;
-    final int victim;
-    final boolean flipped;
+    public final int index;
+    public final int victim;
+    public final boolean flipped;
     public T availableElement;
 
     private final boolean writeLock;
