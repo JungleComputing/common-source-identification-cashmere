@@ -39,6 +39,9 @@ public class CommonSourceIdentification {
             } else if (args[i].equals("-remote-activities")) {
                 nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.main(args);
                 break;
+            } else if (args[i].equals("-dedicated-activities")) {
+                nl.junglecomputing.common_source_identification.dedicated_activities.CommonSourceIdentification.main(args);
+                break;
             } else if (args[i].equals("-relaxed")) {
                 nl.junglecomputing.common_source_identification.relaxed.CommonSourceIdentification.main(args);
                 break;
