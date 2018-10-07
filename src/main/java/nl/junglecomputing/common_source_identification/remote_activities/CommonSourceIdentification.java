@@ -42,12 +42,14 @@ import ibis.constellation.ConstellationConfiguration;
 import ibis.constellation.ConstellationCreationException;
 import ibis.constellation.ConstellationProperties;
 import ibis.constellation.Context;
+import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
 import ibis.constellation.util.ByteBufferCache;
 import ibis.constellation.util.MemorySizes;
+import ibis.constellation.util.MultiEventCollector;
 import ibis.constellation.util.SingleEventCollector;
 import nl.junglecomputing.common_source_identification.Version;
 import nl.junglecomputing.common_source_identification.cpu.ConfigurationFactory;
@@ -368,9 +370,29 @@ public class CommonSourceIdentification {
 
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
-                int n = imageFiles.length;
-                int nrNoisePatternsComputed = n;
-                int nrNoisePatternsTransformed = n;
+
+                MultiEventCollector statisticsCollector = new MultiEventCollector(new Context(LABEL), nrNodes);
+                ActivityIdentifier sid = Cashmere.submit(statisticsCollector);
+                for (int i = 0; i < nrNodes; i++) {
+                    Activity getStats = new GetStatsActivity(sid, i);
+                    Cashmere.submit(getStats);
+                }
+
+                Event[] events = statisticsCollector.waitForEvents();
+
+                int nrNoisePatternsComputed = 0;
+                int nrNoisePatternsTransformed = 0;
+                int nrNoisePatternsSent = 0;
+
+                for (int i = 0; i < events.length; i++) {
+                    int[] stats = (int[]) events[i].getData();
+                    nrNoisePatternsComputed += stats[0];
+                    nrNoisePatternsTransformed += stats[1];
+                    nrNoisePatternsSent += stats[2];
+                }
+
+                logger.info("nrNoisePatternsComputed = {}, nrNoisePatternsTransformed = {}, nrNoisePatternsSent = {}",
+                        nrNoisePatternsComputed, nrNoisePatternsTransformed, nrNoisePatternsSent);
 
                 CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed,
                         timeNanos);

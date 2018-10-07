@@ -45,7 +45,7 @@ class GetNoisePatternsActivity extends Activity {
     private final int height;
     private final int width;
 
-    static AtomicInteger countFetched = new AtomicInteger(0);
+    public static AtomicInteger countFetched = new AtomicInteger(0);
 
     public GetNoisePatternsActivity(ActivityIdentifier id, File[] files, int height, int width, int[] indices, int loc_indices) {
         super(new Context(LABEL + loc_indices, 1), false);

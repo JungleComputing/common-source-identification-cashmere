@@ -36,7 +36,7 @@ public class ComputeNoisePattern {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.ComputeNoisePattern");
 
-    static AtomicInteger patternsComputed = new AtomicInteger(0);
+    public static AtomicInteger patternsComputed = new AtomicInteger(0);
 
     public static void computePRNU_MC(int index, File file, int h, int w, String executor, Device device, ExecutorData data)
             throws IOException, CashmereNotAvailable, LibFuncNotAvailable {

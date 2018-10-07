@@ -35,7 +35,7 @@ import ibis.constellation.Timer;
 
 public class ComputeFrequencyDomain {
 
-    static AtomicInteger transformed = new AtomicInteger(0);
+    public static AtomicInteger transformed = new AtomicInteger(0);
 
     public static void computeFreq(Device device, Pointer noisePatternFreq, int h, int w, boolean flipped, String executor,
             ExecutorData data) throws CashmereNotAvailable, LibFuncNotAvailable {
