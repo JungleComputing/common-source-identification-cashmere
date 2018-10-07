@@ -17,13 +17,16 @@ then
 elif echo "$@" | grep -q -- "-deviceMemCache"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
-elif echo "$@" | grep -q -- "-remote-activities""
+elif echo "$@" | grep -q -- "-remote-activities"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
-elif echo "$@" | grep -q -- "-dedicated-activities""
+elif echo "$@" | grep -q -- "-dedicated-activities"
+then
+    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
+elif echo "$@" | grep -q -- "-relaxed"
 then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G"
 else
-    echo "Need parameter -cpu, -mc, -mainMemCache, -deviceMemCache, -remote-activities or -dedicated-activities"
+    echo "Need parameter -cpu, -mc, -mainMemCache, -deviceMemCache, -remote-activities, -dedicated-activities or relaxed"
     exit 1
 fi

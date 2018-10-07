@@ -36,7 +36,7 @@ import nl.junglecomputing.common_source_identification.remote_activities.Correla
  * they will split up into LeafCorrelationsActivities that cannot be stolen any longer and have to be executed by the node on
  * which they are created.
  */
-class TreeCorrelationsActivity extends CorrelationsActivity {
+public class TreeCorrelationsActivity extends CorrelationsActivity {
 
     private static final long serialVersionUID = 1L;
 
@@ -48,8 +48,9 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
     // debugging, the number of TreeCorrelationsActivities in flight
     static int inFlight = 0;
 
-    TreeCorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI, int[] indicesJ,
-            int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level, ActivityIdentifier[][] providers) {
+    public TreeCorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI,
+            int[] indicesJ, int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level,
+            ActivityIdentifier[][] providers) {
         super(parent, progressActivityID, indicesI, indicesJ, node1, node2, filesI, filesJ, h, w, level, providers);
 
         logger.debug("Creating TreeCorrelation, node1 = {}, node2 = {}, size1 = {}, size2 = {}, level = {}", node1, node2,

@@ -26,12 +26,12 @@ import ibis.constellation.util.ByteBuffers;
  * Object to transfer an array of {@link Buffer}s. We need this because neither {@link java.nio.ByteBuffer} nor {@link Buffer} are
  * serializable.
  */
-class NPBuffer implements ByteBuffers, java.io.Serializable {
+public class NPBuffer implements ByteBuffers, java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    transient Buffer[] buf;
-    int[] indices;
+    public transient Buffer[] buf;
+    public int[] indices;
 
     public NPBuffer(Buffer[] availableElements, int[] indices) {
         buf = availableElements;

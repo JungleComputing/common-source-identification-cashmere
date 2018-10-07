@@ -24,10 +24,10 @@ import nl.junglecomputing.common_source_identification.remote_activities.NoisePa
 /**
  * This Activity's only task is to wait for requests for time domain noise patterns, compute them, and send them back.
  */
-class GetNoisePatternsActivity extends Activity {
+public class GetNoisePatternsActivity extends Activity {
 
     private static final long serialVersionUID = 1L;
-    static final String LABEL = "GetNP";
+    public static final String LABEL = "GetNP";
 
     private final int height;
     private final int width;
@@ -37,13 +37,13 @@ class GetNoisePatternsActivity extends Activity {
 
     static AtomicInteger countFetched = new AtomicInteger(0);
 
-    static class PatternsInfo implements Serializable {
+    public static class PatternsInfo implements Serializable {
 
         private static final long serialVersionUID = 1L;
 
-        int[] indices;
-        File[] files;
-        ActivityIdentifier target;
+        public int[] indices;
+        public File[] files;
+        public ActivityIdentifier target;
     };
 
     public GetNoisePatternsActivity(ActivityIdentifier parent, int height, int width, int location) {

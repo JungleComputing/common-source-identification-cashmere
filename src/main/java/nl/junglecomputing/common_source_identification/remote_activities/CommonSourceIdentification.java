@@ -245,7 +245,7 @@ public class CommonSourceIdentification {
                 nameImageDir = args[i];
             } else if (args[i].equals("-remote-activities")) {
             } else {
-                throw new Error("Usage: java CommonSourceIdentification -image-dir <image-dir> [ -remote-activities ]");
+                throw new Error(nl.junglecomputing.common_source_identification.CommonSourceIdentification.USAGE);
             }
         }
 

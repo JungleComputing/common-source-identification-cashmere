@@ -20,7 +20,7 @@ import ibis.constellation.NoSuitableExecutorException;
 
 public class CommonSourceIdentification {
 
-    public static final String USAGE = "Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu -mc -mainMemCache -deviceMemCache ]";
+    public static final String USAGE = "Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu -mc -mainMemCache -deviceMemCache -remote-activities -dedicated-activities -relaxed ]";
 
     public static void main(String[] args) throws NoSuitableExecutorException {
         for (int i = 0; i < args.length; i++) {
@@ -39,8 +39,8 @@ public class CommonSourceIdentification {
             } else if (args[i].equals("-remote-activities")) {
                 nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.main(args);
                 break;
-            } else if (args[i].equals("-dedicated-activities")) {
-                nl.junglecomputing.common_source_identification.dedicated_activities.CommonSourceIdentification.main(args);
+            } else if (args[i].equals("-relaxed")) {
+                nl.junglecomputing.common_source_identification.relaxed.CommonSourceIdentification.main(args);
                 break;
             } else {
                 throw new Error(USAGE);

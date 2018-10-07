@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nl.junglecomputing.common_source_identification.dedicated_activities;
+package nl.junglecomputing.common_source_identification.relaxed;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +61,9 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.dedicated_activities.GetNoisePatternsActivity;
+import nl.junglecomputing.common_source_identification.dedicated_activities.GetStatsActivity;
+import nl.junglecomputing.common_source_identification.dedicated_activities.TreeCorrelationsActivity;
 import nl.junglecomputing.common_source_identification.main_mem_cache.CacheConfig;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
@@ -95,7 +98,7 @@ public class CommonSourceIdentification {
 
         StealPool stealPool = new StealPool(NodeInformation.STEALPOOL);
         StealPool localPool = new StealPool(NodeInformation.STEALPOOL + NodeInformation.ID);
-        Context ctxt = new Context(CorrelationsActivity.LABEL + NodeInformation.ID);
+        Context ctxt = new Context(CorrelationsActivity.LABEL);
 
         ConfigurationFactory configurationFactory = new ConfigurationFactory();
 
@@ -246,7 +249,7 @@ public class CommonSourceIdentification {
             if (args[i].equals("-image-dir")) {
                 i++;
                 nameImageDir = args[i];
-            } else if (args[i].equals("-dedicated-activities")) {
+            } else if (args[i].equals("-relaxed")) {
             } else {
                 throw new Error(nl.junglecomputing.common_source_identification.CommonSourceIdentification.USAGE);
             }
@@ -419,7 +422,7 @@ public class CommonSourceIdentification {
 
                 Timer writeFilesTimer = Cashmere.getTimer("java", "master", "Write files");
                 int writeEvent = writeFilesTimer.start();
-                IO.writeFiles(result, imageFiles, Version.DEDICATED_ACTIVITIES);
+                IO.writeFiles(result, imageFiles, Version.RELAXED);
                 Linkage.write_linkage(linkage);
                 Linkage.write_flat_clustering(linkage, imageFiles.length);
                 writeFilesTimer.stop(writeEvent);

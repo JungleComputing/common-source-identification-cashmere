@@ -24,7 +24,7 @@ import ibis.constellation.Event;
 import nl.junglecomputing.common_source_identification.mc.ComputeFrequencyDomain;
 import nl.junglecomputing.common_source_identification.mc.ComputeNoisePattern;
 
-class GetStatsActivity extends Activity {
+public class GetStatsActivity extends Activity {
 
     private static final long serialVersionUID = 1L;
 
