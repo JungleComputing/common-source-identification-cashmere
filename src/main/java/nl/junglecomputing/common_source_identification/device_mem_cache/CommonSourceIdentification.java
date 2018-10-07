@@ -55,7 +55,6 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
-import nl.junglecomputing.common_source_identification.cpu.ProgressActivity;
 
 import nl.junglecomputing.common_source_identification.mc.FFT;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
@@ -71,6 +70,18 @@ public class CommonSourceIdentification {
     static int thresholdDC = 2;
 
 
+    public static ActivityIdentifier progressActivity(SingleEventCollector sec, int nrImages) throws NoSuitableExecutorException {
+
+	int nrCorrelations = ((nrImages - 1) * nrImages) / 2;
+
+        ActivityIdentifier aid = Cashmere.submit(sec);
+
+        ProgressActivity progressActivity = new ProgressActivity(aid, nrCorrelations);
+
+        ActivityIdentifier progressActivityID = Cashmere.submit(progressActivity);
+
+        return progressActivityID;
+    }
 
 
 
@@ -255,7 +266,7 @@ public class CommonSourceIdentification {
                 // we start a progress activity that notifies once in a while
                 // how many of the total correlations have been done
                 SingleEventCollector sec2 = new SingleEventCollector(new Context(NodeInformation.LABEL));
-                ActivityIdentifier progressActivityID = NodeInformation.progressActivity(sec2, imageFiles.length);
+                ActivityIdentifier progressActivityID = progressActivity(sec2, imageFiles.length);
 
                 /*
                  * The master sends out notifications of who the master is, the
