@@ -28,6 +28,7 @@ import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Device;
 
 import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
+import nl.junglecomputing.common_source_identification.main_mem_cache.Cache;
 
 /**
  * The NoisePatternCache is a cache for noise patterns that allows threads to lock a specific noise pattern. The NoisePatternCache
