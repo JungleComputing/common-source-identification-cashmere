@@ -31,6 +31,7 @@ def finishGetNodes(node, selected_nodes)
     $gpuSelection = "#SBATCH --gres=gpu"
   end
   $nrNodes += selected_nodes.length;
+  $node_names += selected_nodes
 end
 
 
@@ -46,7 +47,11 @@ NODES_NOT_AVAILABLE = `preserve -llist | tail -n +4 | awk 'BEGIN { FS="\\t"; x =
 
 def build_constraints
   if $nodes.length > 0
-    "-native '--gres=gpu -C [#{$nodes.join("&")}]'"
+    # this form is possible, but doesn't allow a mix of nodes with different
+    # amount of devices (--gres=gpu implies --gres=gpu:1).
+    # we solved this by explicitly choosing the nodes
+    #"-native '--gres=gpu -C [#{$nodes.join("&")}]'"
+    "-native '-w #{$node_names.join(",")}'"
   else
     ""
   end

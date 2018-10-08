@@ -8,6 +8,7 @@ if ARGV.length == 0
 end
 
 $nodes = []
+$node_names = []
 $extra_params = []
 
 class String
