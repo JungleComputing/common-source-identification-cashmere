@@ -44,7 +44,6 @@ import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
 import ibis.constellation.util.MultiEventCollector;
 import ibis.constellation.util.SingleEventCollector;
-
 import nl.junglecomputing.common_source_identification.Version;
 import nl.junglecomputing.common_source_identification.cpu.ConfigurationFactory;
 import nl.junglecomputing.common_source_identification.cpu.CorrelationMatrix;
@@ -55,24 +54,21 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
-
-import nl.junglecomputing.common_source_identification.mc.FFT;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
+import nl.junglecomputing.common_source_identification.mc.FFT;
 
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
-
 
     // The threshold for this node for device subdivision. This will depend on
     // the number of executes, the amount of memory on
     // the many-core device. Initially, we set it to a very conservative value.
     static int thresholdDC = 2;
 
-
     public static ActivityIdentifier progressActivity(SingleEventCollector sec, int nrImages) throws NoSuitableExecutorException {
 
-	int nrCorrelations = ((nrImages - 1) * nrImages) / 2;
+        int nrCorrelations = ((nrImages - 1) * nrImages) / 2;
 
         ActivityIdentifier aid = Cashmere.submit(sec);
 
@@ -83,11 +79,9 @@ public class CommonSourceIdentification {
         return progressActivityID;
     }
 
-
-
     static ConstellationConfiguration[] getConfigurations() {
         int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
-	
+
         StealPool stealPool = new StealPool(NodeInformation.STEALPOOL);
 
         ConfigurationFactory configurationFactory = new ConfigurationFactory();
@@ -109,19 +103,19 @@ public class CommonSourceIdentification {
         // specific to this node. The strategy is to steal
         // the biggest jobs locally and smallest jobs globally.
         configurationFactory.createConfigurations(nrLocalExecutors, stealPool, stealPool,
-                new OrContext(new Context(NodeInformation.HOSTNAME + CorrelationsActivity.LABEL), new Context(CorrelationsActivity.LABEL)),
+                new OrContext(new Context(NodeInformation.HOSTNAME + CorrelationsActivity.LABEL),
+                        new Context(CorrelationsActivity.LABEL)),
                 StealStrategy.BIGGEST, StealStrategy.SMALLEST);
 
         // executors for other small tasks that do not really divide or perform
         // work
         configurationFactory.createConfigurations(1, stealPool, stealPool, NodeInformation.HOSTNAME + NotifyParentActivity.LABEL);
         configurationFactory.createConfigurations(1, stealPool, StealPool.NONE, ProgressActivity.LABEL);
-	logger.debug("creating configuration for: {}", NodeInformation.HOSTNAME + BarrierActivity.LABEL);
+        logger.debug("creating configuration for: {}", NodeInformation.HOSTNAME + BarrierActivity.LABEL);
         configurationFactory.createConfigurations(1, stealPool, stealPool, NodeInformation.HOSTNAME + BarrierActivity.LABEL);
 
         return configurationFactory.getConfigurations();
     }
-
 
     static CorrelationMatrix submitCorrelation(SingleEventCollector sec, int height, int width, File[] imageFiles,
             List<String> nodes) throws NoSuitableExecutorException {
@@ -133,13 +127,12 @@ public class CommonSourceIdentification {
         return (CorrelationMatrix) sec.waitForEvent().getData();
     }
 
-
     /*
      * Various Constellation activities
      */
 
     static void barrierNode() throws NoSuitableExecutorException {
-	logger.debug("hostname: {}", NodeInformation.HOSTNAME);
+        logger.debug("hostname: {}", NodeInformation.HOSTNAME);
         Cashmere.submit(new BarrierActivity(NodeInformation.HOSTNAME));
     }
 
@@ -154,12 +147,12 @@ public class CommonSourceIdentification {
             Cashmere.submit(new NotifyParentActivity(node, aid, progressActivityID));
         }
 
-	logger.debug("hiero");
+        logger.debug("hiero");
 
         mec.waitForEvents();
 
-	logger.debug("na wachten");
-	
+        logger.debug("na wachten");
+
     }
 
     static void printImageToNodeMapping(File[] imageFiles, List<String> nodes) {
@@ -175,7 +168,6 @@ public class CommonSourceIdentification {
             }
         }
     }
-
 
     public static void main(String[] args) throws NoSuitableExecutorException {
         // every node in the cluster does the following:
@@ -211,43 +203,43 @@ public class CommonSourceIdentification {
             Cashmere.initialize(getConfigurations());
             Constellation constellation = Cashmere.getConstellation();
 
+            int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
 
-	    int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
-		
-	    Device device = Cashmere.getDevice("grayscaleKernel");
-	    // we set the number of blocks for reduction operations to the
-	    // following value
-	    int nrBlocksForReduce = 1024;
-	    long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce);
+            Device device = Cashmere.getDevice("grayscaleKernel");
+            // we set the number of blocks for reduction operations to the
+            // following value
+            int nrBlocksForReduce = 1024;
+            long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce,
+                    false);
 
-	    // we initialize for all nrLocalExecutors executors private data
-	    ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce);
-	    int nrNoisePatternsFreqDevice = CacheConfig.initializeCache(device, height, width,
-		    memoryToBeReservedPerThread * nrLocalExecutors, nrLocalExecutors);
+            // we initialize for all nrLocalExecutors executors private data
+            ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce, false);
+            int nrNoisePatternsFreqDevice = CacheConfig.initializeCache(device, height, width,
+                    memoryToBeReservedPerThread * nrLocalExecutors, nrLocalExecutors);
 
-	    // we compute a value for the threshold for subdivision of work
-	    // based on the number of noise patterns on the
-	    // device and the number of executors that have to share the
-	    // device.
-	    thresholdDC = nrNoisePatternsFreqDevice / 2 / nrLocalExecutors;
-	    logger.debug("{} parallel activities", nrLocalExecutors);
-	    logger.debug(String.format("Setting the d&c threshold to: %d/2/%d = %d", nrNoisePatternsFreqDevice,
-			    nrLocalExecutors, thresholdDC));
+            // we compute a value for the threshold for subdivision of work
+            // based on the number of noise patterns on the
+            // device and the number of executors that have to share the
+            // device.
+            thresholdDC = nrNoisePatternsFreqDevice / 2 / nrLocalExecutors;
+            logger.debug("{} parallel activities", nrLocalExecutors);
+            logger.debug(String.format("Setting the d&c threshold to: %d/2/%d = %d", nrNoisePatternsFreqDevice, nrLocalExecutors,
+                    thresholdDC));
 
-	    // we initialize the fft library for the many-core device
-	    Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {
-			int err = FFT.initializeFFT(context, queue, height, width);
-			if (err != 0) {
-			    throw new CLException(CL.stringFor_errorCode(err));
-			}
-		    }, () -> {
-			int err = FFT.deinitializeFFT();
-			if (err != 0) {
-			    throw new CLException(CL.stringFor_errorCode(err));
-			}
-		    });
-	    Cashmere.initializeLibraries();
-	    constellation.activate();
+            // we initialize the fft library for the many-core device
+            Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {
+                int err = FFT.initializeFFT(context, queue, height, width);
+                if (err != 0) {
+                    throw new CLException(CL.stringFor_errorCode(err));
+                }
+            }, () -> {
+                int err = FFT.deinitializeFFT();
+                if (err != 0) {
+                    throw new CLException(CL.stringFor_errorCode(err));
+                }
+            });
+            Cashmere.initializeLibraries();
+            constellation.activate();
 
             // every node starts a barrier activity
             barrierNode();
@@ -256,8 +248,8 @@ public class CommonSourceIdentification {
                 logger.info("CommonSourceIdentification, running with number of nodes: " + nrNodes);
                 logger.info("image-dir: " + nameImageDir);
 
-                logger.info("I am the master, my hostname is: {}, pid: {}", NodeInformation.HOSTNAME, 
-			NodeInformation.getProcessId("<PID>"));
+                logger.info("I am the master, my hostname is: {}, pid: {}", NodeInformation.HOSTNAME,
+                        NodeInformation.getProcessId("<PID>"));
 
                 printImageToNodeMapping(imageFiles, nodes);
 
@@ -322,7 +314,7 @@ public class CommonSourceIdentification {
             Cashmere.done();
 
             // cleanup
-	    Cashmere.deinitializeLibraries();
+            Cashmere.deinitializeLibraries();
             CacheConfig.clearCaches();
         } catch (IOException | ConstellationCreationException | CashmereNotAvailable e) {
             throw new Error(e);

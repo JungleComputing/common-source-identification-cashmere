@@ -230,12 +230,13 @@ public class CommonSourceIdentification {
             // we set the number of blocks for reduction operations to the
             // following value
             int nrBlocksForReduce = 1024;
-            long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce);
+            long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce,
+                    false);
             int nWorkers = nrLocalExecutors + nrNoisePatternProviders;
 
             // we initialize for all executors private data.
             // we need nrLocalExecutors+nrNoisePatternProviders of them,
-            ExecutorData.initialize(nWorkers, device, height, width, nrBlocksForReduce);
+            ExecutorData.initialize(nWorkers, device, height, width, nrBlocksForReduce, false);
             int nrNoisePatternsFreqDevice = initializeCache(device, height, width, memoryToBeReservedPerThread * nWorkers,
                     nWorkers, imageFiles.length);
 

@@ -43,9 +43,10 @@ public class ExecutorData {
      * At initialization time we don't know yet to which executors this data will mapped, therefore, we store it in a list and
      * defer creating the mapping to a later stage.
      */
-    public static synchronized void initialize(int nrExecutors, Device device, int h, int w, int nrBlocksForReduce) {
+    public static synchronized void initialize(int nrExecutors, Device device, int h, int w, int nrBlocksForReduce,
+            boolean allocateFreq) {
         for (int i = 0; i < nrExecutors; i++) {
-            nonUsedExecutorData.add(new ExecutorData(device, new Buffer(h * w * 3), h, w, nrBlocksForReduce));
+            nonUsedExecutorData.add(new ExecutorData(device, new Buffer(h * w * 3), h, w, nrBlocksForReduce, allocateFreq));
         }
     }
 
@@ -64,9 +65,9 @@ public class ExecutorData {
     /*
      * The amount of device memory that an executor thread needs.
      */
-    public static long memoryForKernelExecutionThread(int h, int w, int nrBlocksForReduce) {
+    public static long memoryForKernelExecutionThread(int h, int w, int nrBlocksForReduce, boolean freq) {
         return h * w * Sizeof.cl_float * 6L + nrBlocksForReduce * Sizeof.cl_double + nrBlocksForReduce * Sizeof.cl_float
-                + (long) Sizeof.cl_int * 5 + h * w * 3;
+                + (long) Sizeof.cl_int * 5 + h * w * 3 + (freq ? h * w * Sizeof.cl_float * 4L : 0);
     }
 
     private Device device;
@@ -140,7 +141,7 @@ public class ExecutorData {
     public Pointer noisePatternFreq2;
 
     // the constructor allocates all the data.
-    public ExecutorData(Device device, Buffer bufferHWRGB, int h, int w, int nrBlocksForReduce) {
+    public ExecutorData(Device device, Buffer bufferHWRGB, int h, int w, int nrBlocksForReduce, boolean allocateFreq) {
         this.device = device;
         this.nrBlocksForReduce = nrBlocksForReduce;
 
@@ -174,8 +175,12 @@ public class ExecutorData {
 
         // launchToComplex(AndFlip)
         noisePattern = device.allocate(h * w * Sizeof.cl_float);
-        noisePatternFreq1 = device.allocate(h * w * 2 * Sizeof.cl_float);
-        noisePatternFreq2 = device.allocate(h * w * 2 * Sizeof.cl_float);
+
+        // Only for non-freq-domain-caching versions ...
+        if (allocateFreq) {
+            noisePatternFreq1 = device.allocate(h * w * 2 * Sizeof.cl_float);
+            noisePatternFreq2 = device.allocate(h * w * 2 * Sizeof.cl_float);
+        }
 
         // uses data from LeafCorrelationsActivity
 

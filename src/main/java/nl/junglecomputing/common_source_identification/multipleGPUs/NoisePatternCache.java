@@ -61,7 +61,6 @@ public class NoisePatternCache {
     // the actual noise patterns, in time domain, represented by Buffer objects, kept in the main memory
     private static Cache<Buffer> noisePatterns;
 
-    private static List<Device> devices;
     // keeps track of which noise pattern is on which device (not fully implemented)
     private static DeviceMap deviceMap;
 
@@ -91,12 +90,11 @@ public class NoisePatternCache {
      * @param width
      *            the width of the noise patterns
      * @param nrNoisePatternsFreq
-     *            the number of noise patterns in frequency domain (has to be split in two for regular and flipped)
+     *            the number of noise patterns in frequency domain per device(has to be split in two for regular and flipped)
      * @param nrNoisePatterns
      *            the number of noise patterns in time domain
      */
-    public static void initialize(List<Device> devices, int height, int width, int nrNoisePatternsFreq, int nrNoisePatterns) {
-        NoisePatternCache.devices = devices;
+    public static void initialize(List<Device> devices, int height, int width, int[] nrNoisePatternsFreq, int nrNoisePatterns) {
         regularLocks = new LockMap[devices.size()];
         flippedLocks = new LockMap[devices.size()];
         for (int i = 0; i < devices.size(); i++) {
@@ -117,26 +115,18 @@ public class NoisePatternCache {
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             Pointer[] noisePatternFreqRegularMemory = createNoisePatternFreqMemory(device, height, width,
-                    nrNoisePatternsFreq / 2);
+                    nrNoisePatternsFreq[i] / 2);
             Pointer[] noisePatternFreqFlippedMemory = createNoisePatternFreqMemory(device, height, width,
-                    nrNoisePatternsFreq / 2);
+                    nrNoisePatternsFreq[i] / 2);
 
             noisePatternsFreqRegular.get(i).setMemory(noisePatternFreqRegularMemory);
             noisePatternsFreqFlipped.get(i).setMemory(noisePatternFreqFlippedMemory);
+
+            logger.info("Setting # noise patterns freq regular on device {} to: {}", i, nrNoisePatternsFreq[i] / 2);
+            logger.info("Setting # noise patterns freq flipped on devices{} to: {}", i, nrNoisePatternsFreq[i] / 2);
         }
 
-        logger.info("Setting # noise patterns freq regular on the devices to: " + nrNoisePatternsFreq / 2);
-        logger.info("Setting # noise patterns freq flipped on the devices to: " + nrNoisePatternsFreq / 2);
         logger.info("Setting # noise patterns in memory to: " + nrNoisePatterns);
-    }
-
-    public static int getDeviceNo(Device d) {
-        for (int i = 0; i < devices.size(); i++) {
-            if (devices.get(i) == d) {
-                return i;
-            }
-        }
-        throw new Error("Device not found: " + d.toString());
     }
 
     /**

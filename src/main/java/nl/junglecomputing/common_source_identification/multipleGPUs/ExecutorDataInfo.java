@@ -49,7 +49,7 @@ public class ExecutorDataInfo {
             Buffer bufferHWRGB = new Buffer(h * w * 3);
             for (Device device : devices) {
                 int deviceNo = getDeviceNo(device);
-                nonUsedExecutorData.get(deviceNo).add(new ExecutorData(device, bufferHWRGB, h, w, nrBlocksForReduce));
+                nonUsedExecutorData.get(deviceNo).add(new ExecutorData(device, bufferHWRGB, h, w, nrBlocksForReduce, false));
             }
         }
     }

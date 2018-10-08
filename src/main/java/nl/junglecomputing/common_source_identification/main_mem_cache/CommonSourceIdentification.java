@@ -136,7 +136,7 @@ public class CommonSourceIdentification {
             int nrBlocksForReduce = 1024;
 
             // we initialize for all nrLocalExecutors executors private data
-            ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce);
+            ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce, true);
 
             logger.debug("{} parallel activities", nrLocalExecutors);
 

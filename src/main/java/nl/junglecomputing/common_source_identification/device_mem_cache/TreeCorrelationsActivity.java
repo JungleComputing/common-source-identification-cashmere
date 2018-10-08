@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import ibis.constellation.Constellation;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
-
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
 
 /*
@@ -72,8 +71,8 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
                 node = "everybody";
             }
 
-            logger.debug(String.format("Executing for %s by %s:" + "  (%d-%d), (%d-%d)", node,
-                    NodeInformation.HOSTNAME, startI, endI, startJ, endJ));
+            logger.debug(String.format("Executing for %s by %s:" + "  (%d-%d), (%d-%d)", node, NodeInformation.HOSTNAME, startI,
+                    endI, startJ, endJ));
             if (stolenActivity()) {
                 logger.debug("Executing a stolen activity");
             } else {
@@ -100,7 +99,7 @@ class TreeCorrelationsActivity extends CorrelationsActivity {
         // thresholdDC contains the total number of images a tile may contain.
         int threshold = CommonSourceIdentification.thresholdDC / 2;
 
-        if (nrActivitiesI / threshold > 2) {
+        if (nrActivitiesI / threshold > 2 || nrActivitiesJ / threshold > 2) {
             // The case where we can subdivide both ranges in two.  This will lead to a new TreeCorrelationsActivity.
             nrIterationsI = nrActivitiesI > threshold ? 2 : 1;
             nrIterationsJ = nrActivitiesJ > threshold ? 2 : 1;

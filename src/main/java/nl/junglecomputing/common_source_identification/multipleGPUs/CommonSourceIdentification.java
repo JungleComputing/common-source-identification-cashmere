@@ -61,7 +61,6 @@ import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
 import nl.junglecomputing.common_source_identification.dedicated_activities.GetStatsActivity;
-import nl.junglecomputing.common_source_identification.device_mem_cache.CacheConfig;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
 import nl.junglecomputing.common_source_identification.remote_activities.CorrelationMatrixActivity;
@@ -75,6 +74,9 @@ public class CommonSourceIdentification {
     // the number of executes, the amount of memory on
     // the many-core device. Initially, we set it to a very conservative value.
     static int thresholdDC = 2;
+
+    public static List<Device> devices;
+    public static int[] thresholds;
 
     private static int CHUNK_THRESHOLD = 48;
 
@@ -114,17 +116,32 @@ public class CommonSourceIdentification {
         return configurationFactory.getConfigurations();
     }
 
-    public static int initializeCache(List<Device> devices, int height, int width, long toBeReserved, int nrThreads,
+    public static int getDeviceNo(Device d) {
+        for (int i = 0; i < devices.size(); i++) {
+            if (devices.get(i) == d) {
+                return i;
+            }
+        }
+        throw new Error("Device not found: " + d.toString());
+    }
+
+    public static int[] initializeCache(List<Device> devices, int height, int width, long toBeReserved, int nrThreads,
             int nImages) {
         int sizeNoisePattern = height * width * 4;
         int sizeNoisePatternFreq = sizeNoisePattern * 2;
         logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
         logger.info("Size of noise pattern freq: " + MemorySizes.toStringBytes(sizeNoisePatternFreq));
 
-        int nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
+        int[] nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(devices, sizeNoisePatternFreq, toBeReserved);
         long memReservedForGrayscale = height * width * 3 * nrThreads;
 
-        int nByteBuffers = 3 * nrNoisePatternsFreqDevice / 4 + 1;
+        // Executors may together simultaneously receive at most nrNoisePatternsFreqDevice/2 patterns.
+        // We allocate a bit more to prevent the ByteBufferCache from allocating new buffers when a threshold is reached.
+        int total = 0;
+        for (int s : nrNoisePatternsFreqDevice) {
+            total += s;
+        }
+        int nByteBuffers = 3 * total / 4 + 1;
         logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
         ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
         // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
@@ -223,7 +240,7 @@ public class CommonSourceIdentification {
             Cashmere.initialize(getConfigurations(), p);
             Constellation constellation = Cashmere.getConstellation();
 
-            List<Device> devices = Cashmere.getDevices("grayscaleKernel");
+            devices = Cashmere.getDevices("grayscaleKernel");
             if (devices.size() == 0) {
                 throw new Error("No Manycore devices found");
             }
@@ -237,26 +254,33 @@ public class CommonSourceIdentification {
             // we set the number of blocks for reduction operations to the
             // following value
             int nrBlocksForReduce = 1024;
-            long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce);
+            long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce,
+                    false);
             int nWorkers = nrLocalExecutors + nrNoisePatternProviders;
 
             // we initialize for all executors private data.
             // we need nrLocalExecutors+nrNoisePatternProviders of them,
             ExecutorDataInfo.initialize(nWorkers, devices, height, width, nrBlocksForReduce);
-            int nrNoisePatternsFreqDevice = initializeCache(devices, height, width, memoryToBeReservedPerThread * nWorkers,
+            int[] nrNoisePatternsFreqDevice = initializeCache(devices, height, width, memoryToBeReservedPerThread * nWorkers,
                     nWorkers, imageFiles.length);
+            int min = Integer.MAX_VALUE;
+            for (int v : nrNoisePatternsFreqDevice) {
+                if (v < min) {
+                    min = v;
+                }
+            }
 
             // we compute a value for the threshold for subdivision of work
             // based on the number of noise patterns on the
             // device and the number of executors that have to share the
             // device.
-            thresholdDC = Math.max(nrNoisePatternsFreqDevice / nrLocalExecutors, 1);
+            thresholdDC = Math.max(min / nrLocalExecutors, 1);
+
             if (thresholdDC > 8) {
                 CHUNK_THRESHOLD = thresholdDC;
             }
             logger.info("{} parallel activities", nrLocalExecutors);
-            logger.info(String.format("Setting the d&c threshold to: %d/%d = %d", nrNoisePatternsFreqDevice, nrLocalExecutors,
-                    thresholdDC));
+            logger.info(String.format("Setting the d&c threshold to: %d/%d = %d", min, nrLocalExecutors, thresholdDC));
 
             // we initialize the fft library for the many-core device
             Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {

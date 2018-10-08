@@ -122,7 +122,8 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
             device = Cashmere.getDevice("grayscaleKernel");
             // we retrieve the data for this executor
             data = ExecutorDataInfo.get(device, cons);
-            deviceNo = NoisePatternCache.getDeviceNo(device);
+            deviceNo = CommonSourceIdentification.getDeviceNo(device);
+            logger.info("Running on device {}", deviceNo);
 
             if (node1 != node2) {
                 retrieveRemoteFrequencyDomain(cons, executor);
