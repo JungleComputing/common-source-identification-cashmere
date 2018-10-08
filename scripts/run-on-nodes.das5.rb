@@ -9,7 +9,6 @@ require("#{$bin_dir}/run-submit-on-nodes-das5.rb")
 command = "prun -np #{$nrNodes} " +
     "-t #{$time} " + "#{build_constraints} " +
     "#{$extra_params.join} " + 
-    "CUDA_VISIBLE_DEVICES=0,1,2 " + 
     "CLASSPATH=#{$classpath}:$CLASSPATH $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR/bin/run-script " +
     "-XX:MaxDirectMemorySize=50G " +
     "-Dibis.server.address=fs0.das5.cs.vu.nl " +

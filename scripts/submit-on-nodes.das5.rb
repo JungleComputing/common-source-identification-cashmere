@@ -12,11 +12,14 @@ open(filename, 'w') do |f|
   f.puts "#!/bin/bash"
   f.puts "#SBATCH --time #{$time}"
   f.puts "#SBATCH -N #{$nrNodes}"
-  if $gpuSelection.length > 0
-  then
-    f.puts "#SBATCH -C [#{$nodes.join("&")}]"
-    f.puts "#{$gpuSelection}"
-  end
+  # the following code does not work if you need a different number of devices 
+  # per node.  Instead, we will select the nodes we want explicitly
+  # if $gpuSelection.length > 0
+  # then
+  #   f.puts "#SBATCH -C [#{$nodes.join("&")}]"
+  #   f.puts "#{$gpuSelection}"
+  # end
+  f.puts "#SBATCH -w #{$node_names.join(",")}"
   f.puts "#SBATCH --get-user-env"
   f.puts ""
   f.puts "CLASSPATH=#{$classpath}:$CLASSPATH srun $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR/bin/run-script " +
