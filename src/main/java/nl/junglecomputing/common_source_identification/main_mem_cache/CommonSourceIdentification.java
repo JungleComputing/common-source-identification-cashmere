@@ -212,9 +212,9 @@ public class CommonSourceIdentification {
                 }
 
                 logger.info("nrNoisePatternsComputed = {}, nrNoisePatternsTransformed = {}", nrNoisePatternsComputed,
-                        nrNoisePatternsTransformed);
+                        nrNoisePatternsTransformed / 2);
 
-                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed,
+                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed / 2,
                         timeNanos);
 
                 // we wait for the progress activity to stop

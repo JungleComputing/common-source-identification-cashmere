@@ -355,9 +355,9 @@ public class CommonSourceIdentification {
                 }
 
                 logger.info("nrNoisePatternsComputed = {}, nrNoisePatternsTransformed = {}, nrNoisePatternsSent = {}",
-                        nrNoisePatternsComputed, nrNoisePatternsTransformed, nrNoisePatternsSent);
+                        nrNoisePatternsComputed, nrNoisePatternsTransformed / 2, nrNoisePatternsSent);
 
-                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed,
+                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed / 2,
                         timeNanos);
 
                 Timer writeFilesTimer = Cashmere.getTimer("java", "master", "Write files");
