@@ -32,11 +32,13 @@ import org.slf4j.LoggerFactory;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
+import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationConfiguration;
 import ibis.constellation.ConstellationCreationException;
 import ibis.constellation.Context;
+import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
 import ibis.constellation.OrContext;
 import ibis.constellation.StealPool;
@@ -54,6 +56,7 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.main_mem_cache.GetStatsActivity;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
 
@@ -284,12 +287,28 @@ public class CommonSourceIdentification {
                 // we wait for the progress activit to stop
                 sec2.waitForEvent();
 
-                // printTimings(nodes, timer.totalTimeVal());
+                MultiEventCollector statisticsCollector = new MultiEventCollector(new Context(NodeInformation.LABEL), nrNodes);
+                ActivityIdentifier sid = Cashmere.submit(statisticsCollector);
+                for (int i = 0; i < nrNodes; i++) {
+                    Activity getStats = new GetStatsActivity(sid, nodes.get(i) + NodeActivity.LABEL);
+                    Cashmere.submit(getStats);
+                }
 
-                int n = imageFiles.length;
-                // TODO: this has to be counted with a statistics
-                int nrNoisePatternsComputed = (n * (n - 1)) / 2;
-                int nrNoisePatternsTransformed = (n * (n - 1)) / 2;
+                Event[] events = statisticsCollector.waitForEvents();
+
+                int nrNoisePatternsComputed = 0;
+                int nrNoisePatternsTransformed = 0;
+
+                for (int i = 0; i < events.length; i++) {
+                    int[] stats = (int[]) events[i].getData();
+                    nrNoisePatternsComputed += stats[0];
+                    nrNoisePatternsTransformed += stats[1];
+                }
+
+                logger.info("nrNoisePatternsComputed = {}, nrNoisePatternsTransformed = {}", nrNoisePatternsComputed,
+                        nrNoisePatternsTransformed);
+
+                // printTimings(nodes, timer.totalTimeVal());
 
                 CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed,
                         timeNanos);

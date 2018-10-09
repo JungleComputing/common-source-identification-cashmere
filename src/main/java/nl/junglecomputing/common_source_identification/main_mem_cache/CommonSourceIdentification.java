@@ -32,15 +32,18 @@ import org.slf4j.LoggerFactory;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
+import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
 import ibis.constellation.ConstellationConfiguration;
 import ibis.constellation.ConstellationCreationException;
 import ibis.constellation.Context;
+import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
+import ibis.constellation.util.MultiEventCollector;
 import ibis.constellation.util.SingleEventCollector;
 import nl.junglecomputing.common_source_identification.Version;
 import nl.junglecomputing.common_source_identification.cpu.ConfigurationFactory;
@@ -69,6 +72,13 @@ public class CommonSourceIdentification {
 
         configurationFactory.createConfigurations(nrLocalExecutors, stealPool, stealPool, new Context(CorrelationsActivity.LABEL),
                 StealStrategy.BIGGEST, StealStrategy.SMALLEST);
+
+        // We create one executor for the node activities with steal pool
+        // stealPool from which it also steals. Note that the
+        // label contains the hostname of this node, which means that this
+        // executor will only steal activities with the label
+        // that matches the hostname.
+        configurationFactory.createConfigurations(1, stealPool, stealPool, NodeInformation.HOSTNAME + NodeInformation.LABEL);
 
         // One thread for the progress activity
         configurationFactory.createConfigurations(1, stealPool, stealPool, new Context(ProgressActivity.LABEL),
@@ -183,10 +193,26 @@ public class CommonSourceIdentification {
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
 
-                int n = imageFiles.length;
-                // TODO: this has to be counted with a statistics
-                int nrNoisePatternsComputed = (n * (n - 1)) / 2;
-                int nrNoisePatternsTransformed = (n * (n - 1)) / 2;
+                MultiEventCollector statisticsCollector = new MultiEventCollector(new Context(NodeInformation.LABEL), nrNodes);
+                ActivityIdentifier sid = Cashmere.submit(statisticsCollector);
+                for (int i = 0; i < nrNodes; i++) {
+                    Activity getStats = new GetStatsActivity(sid, nodes.get(i) + NodeInformation.LABEL);
+                    Cashmere.submit(getStats);
+                }
+
+                Event[] events = statisticsCollector.waitForEvents();
+
+                int nrNoisePatternsComputed = 0;
+                int nrNoisePatternsTransformed = 0;
+
+                for (int i = 0; i < events.length; i++) {
+                    int[] stats = (int[]) events[i].getData();
+                    nrNoisePatternsComputed += stats[0];
+                    nrNoisePatternsTransformed += stats[1];
+                }
+
+                logger.info("nrNoisePatternsComputed = {}, nrNoisePatternsTransformed = {}", nrNoisePatternsComputed,
+                        nrNoisePatternsTransformed);
 
                 CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed,
                         timeNanos);
