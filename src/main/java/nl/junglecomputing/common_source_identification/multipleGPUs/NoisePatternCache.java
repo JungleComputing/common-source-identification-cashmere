@@ -18,7 +18,6 @@ package nl.junglecomputing.common_source_identification.multipleGPUs;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -94,10 +93,12 @@ public class NoisePatternCache {
      * @param nrNoisePatterns
      *            the number of noise patterns in time domain
      */
-    public static void initialize(List<Device> devices, int height, int width, int[] nrNoisePatternsFreq, int nrNoisePatterns) {
-        regularLocks = new LockMap[devices.size()];
-        flippedLocks = new LockMap[devices.size()];
-        for (int i = 0; i < devices.size(); i++) {
+    public static void initialize(int height, int width, int nrNoisePatterns) {
+        DeviceInfo[] info = DeviceInfo.info;
+        regularLocks = new LockMap[info.length];
+        flippedLocks = new LockMap[info.length];
+        for (int i = 0; i < info.length; i++) {
+            assert (info[i].getDeviceNo() == i);
             noisePatternsFreqRegular.add(new Cache<Pointer>("device freq regular"));
             noisePatternsFreqFlipped.add(new Cache<Pointer>("device freq flipped"));
             regularLocks[i] = new LockMap();
@@ -112,18 +113,20 @@ public class NoisePatternCache {
         noisePatterns.setMemory(noisePatternMemory);
 
         // we split the memory of the device into two, for regular and flipped
-        for (int i = 0; i < devices.size(); i++) {
-            Device device = devices.get(i);
-            Pointer[] noisePatternFreqRegularMemory = createNoisePatternFreqMemory(device, height, width,
-                    nrNoisePatternsFreq[i] / 2);
-            Pointer[] noisePatternFreqFlippedMemory = createNoisePatternFreqMemory(device, height, width,
-                    nrNoisePatternsFreq[i] / 2);
+        for (int i = 0; i < info.length; i++) {
+            Device device = info[i].getDevice();
+            int nPatterns = info[i].getThreshold() * info[i].getnWorkers();
+            if (nPatterns == 0) {
+                continue;
+            }
+            Pointer[] noisePatternFreqRegularMemory = createNoisePatternFreqMemory(device, height, width, nPatterns / 2);
+            Pointer[] noisePatternFreqFlippedMemory = createNoisePatternFreqMemory(device, height, width, nPatterns / 2);
 
             noisePatternsFreqRegular.get(i).setMemory(noisePatternFreqRegularMemory);
             noisePatternsFreqFlipped.get(i).setMemory(noisePatternFreqFlippedMemory);
 
-            logger.info("Setting # noise patterns freq regular on device {} to: {}", i, nrNoisePatternsFreq[i] / 2);
-            logger.info("Setting # noise patterns freq flipped on devices{} to: {}", i, nrNoisePatternsFreq[i] / 2);
+            logger.info("Setting # noise patterns freq regular on device {} to: {}", i, nPatterns / 2);
+            logger.info("Setting # noise patterns freq flipped on devices{} to: {}", i, nPatterns / 2);
         }
 
         logger.info("Setting # noise patterns in memory to: " + nrNoisePatterns);

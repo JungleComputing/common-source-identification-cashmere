@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.Device;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
@@ -69,14 +68,6 @@ import nl.junglecomputing.common_source_identification.remote_activities.Progres
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
-
-    // The threshold for this node for device subdivision. This will depend on
-    // the number of executes, the amount of memory on
-    // the many-core device. Initially, we set it to a very conservative value.
-    static int thresholdDC = 2;
-
-    public static List<Device> devices;
-    public static int[] thresholds;
 
     private static int CHUNK_THRESHOLD = 48;
 
@@ -116,32 +107,21 @@ public class CommonSourceIdentification {
         return configurationFactory.getConfigurations();
     }
 
-    public static int getDeviceNo(Device d) {
-        for (int i = 0; i < devices.size(); i++) {
-            if (devices.get(i) == d) {
-                return i;
-            }
-        }
-        throw new Error("Device not found: " + d.toString());
-    }
-
-    public static int[] initializeCache(List<Device> devices, int height, int width, long toBeReserved, int nrThreads,
-            int nImages) {
+    public static void initializeCache(int height, int width, long toBeReserved, int nrThreads, int nImages) {
         int sizeNoisePattern = height * width * 4;
         int sizeNoisePatternFreq = sizeNoisePattern * 2;
         logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
         logger.info("Size of noise pattern freq: " + MemorySizes.toStringBytes(sizeNoisePatternFreq));
 
-        int[] nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(devices, sizeNoisePatternFreq, toBeReserved);
         long memReservedForGrayscale = height * width * 3 * nrThreads;
 
         // Executors may together simultaneously receive at most nrNoisePatternsFreqDevice/2 patterns.
         // We allocate a bit more to prevent the ByteBufferCache from allocating new buffers when a threshold is reached.
         int total = 0;
-        for (int s : nrNoisePatternsFreqDevice) {
-            total += s;
+        for (DeviceInfo info : DeviceInfo.info) {
+            total += info.getnWorkers() * info.getThreshold();
         }
-        int nByteBuffers = 3 * total / 4 + 1;
+        int nByteBuffers = 3 * total / 4;
         logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
         ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
         // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
@@ -154,9 +134,7 @@ public class CommonSourceIdentification {
         logger.info("memReservedForGrayscale = " + MemorySizes.toStringBytes(memReservedForGrayscale));
         logger.info("nrNoisePatternsMemory = " + nrNoisePatternsMemory);
 
-        NoisePatternCache.initialize(devices, height, width, nrNoisePatternsFreqDevice, nrNoisePatternsMemory);
-
-        return nrNoisePatternsFreqDevice;
+        NoisePatternCache.initialize(height, width, nrNoisePatternsMemory);
     }
 
     static CorrelationMatrix submitCorrelations(SingleEventCollector sec, ActivityIdentifier id, ActivityIdentifier progress,
@@ -185,7 +163,7 @@ public class CommonSourceIdentification {
                 for (int k = 0; k < sublists[i].length; k++) {
                     for (int l = 0; l < sublists[j].length; l++) {
                         if (i != j || l >= k) {
-                            activities.add(new TreeCorrelationsActivity(id, progress, sublists[i][k], sublists[j][l], i, j,
+                            activities.add(new CorrelationsActivity(id, progress, sublists[i][k], sublists[j][l], i, j,
                                     subfilesLists[i][k], subfilesLists[j][l], height, width, 1, providers));
                         }
                     }
@@ -240,47 +218,22 @@ public class CommonSourceIdentification {
             Cashmere.initialize(getConfigurations(), p);
             Constellation constellation = Cashmere.getConstellation();
 
-            devices = Cashmere.getDevices("grayscaleKernel");
-            if (devices.size() == 0) {
-                throw new Error("No Manycore devices found");
-            }
-            if (logger.isInfoEnabled()) {
-                for (Device d : devices) {
-                    logger.info("Found device " + d.toString());
-                }
-            }
             int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
             int nrNoisePatternProviders = NodeInformation.getNrExecutors("np.providers", 2);
-            // we set the number of blocks for reduction operations to the
-            // following value
+
+            // we set the number of blocks for reduction operations to the following value
             int nrBlocksForReduce = 1024;
             long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce,
                     false);
+
+            DeviceInfo.initialize(nrLocalExecutors, nrNoisePatternProviders, memoryToBeReservedPerThread, height, width,
+                    nrBlocksForReduce);
+
             int nWorkers = nrLocalExecutors + nrNoisePatternProviders;
 
-            // we initialize for all executors private data.
-            // we need nrLocalExecutors+nrNoisePatternProviders of them,
-            ExecutorDataInfo.initialize(nWorkers, devices, height, width, nrBlocksForReduce);
-            int[] nrNoisePatternsFreqDevice = initializeCache(devices, height, width, memoryToBeReservedPerThread * nWorkers,
-                    nWorkers, imageFiles.length);
-            int min = Integer.MAX_VALUE;
-            for (int v : nrNoisePatternsFreqDevice) {
-                if (v < min) {
-                    min = v;
-                }
-            }
+            initializeCache(height, width, memoryToBeReservedPerThread * nWorkers, nWorkers, imageFiles.length);
 
-            // we compute a value for the threshold for subdivision of work
-            // based on the number of noise patterns on the
-            // device and the number of executors that have to share the
-            // device.
-            thresholdDC = Math.max(min / nrLocalExecutors, 1);
-
-            if (thresholdDC > 8) {
-                CHUNK_THRESHOLD = thresholdDC;
-            }
             logger.info("{} parallel activities", nrLocalExecutors);
-            logger.info(String.format("Setting the d&c threshold to: %d/%d = %d", min, nrLocalExecutors, thresholdDC));
 
             // we initialize the fft library for the many-core device
             Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {

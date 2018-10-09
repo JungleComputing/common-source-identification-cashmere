@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
@@ -33,6 +32,7 @@ public class GetNoisePatternsActivity extends Activity {
     private transient String executor;
     private transient Device device;
     private final ActivityIdentifier parent;
+    private transient DeviceInfo info;
 
     static AtomicInteger countFetched = new AtomicInteger(0);
 
@@ -55,12 +55,8 @@ public class GetNoisePatternsActivity extends Activity {
     @Override
     public int initialize(Constellation constellation) {
         executor = constellation.identifier().toString();
-
-        try {
-            device = Cashmere.getDevice("grayscaleKernel");
-        } catch (CashmereNotAvailable e1) {
-            throw new Error("Could not get device", e1);
-        }
+        info = DeviceInfo.getDeviceInfo(executor, LABEL);
+        device = info.getDevice();
         constellation.send(new Event(identifier(), parent, "I'm here!"));
         return SUSPEND;
     }
@@ -75,9 +71,9 @@ public class GetNoisePatternsActivity extends Activity {
         Timer t = Cashmere.getTimer("java", executor, "provide noise pattern");
         int ev = t.start();
 
-        PatternsInfo info = (PatternsInfo) messageData;
-        int[] indices = info.indices;
-        File[] files = info.files;
+        PatternsInfo patternsInfo = (PatternsInfo) messageData;
+        int[] indices = patternsInfo.indices;
+        File[] files = patternsInfo.files;
 
         countFetched.addAndGet(indices.length);
 
@@ -105,7 +101,7 @@ public class GetNoisePatternsActivity extends Activity {
                     } else {
                         assert (lt.writeLock());
                         // Compute the time domain noise pattern
-                        ExecutorData data = ExecutorDataInfo.get(device, constellation);
+                        ExecutorData data = info.getExecutorData();
                         try {
                             ComputeNoisePattern.computePRNU_MC(indices[i], files[i], height, width, executor, device, data);
                             device.get(lt.availableElement, data.noisePattern);
@@ -119,7 +115,7 @@ public class GetNoisePatternsActivity extends Activity {
             }
         }
         NPBuffer b = new NPBuffer(bufs, indices);
-        constellation.send(new Event(identifier(), info.target, b));
+        constellation.send(new Event(identifier(), patternsInfo.target, b));
         // Only release the locks after the message is sent.
         for (int i = 0; i < indices.length; i++) {
             NoisePatternCache.unlockNoisePattern(indices[i]);

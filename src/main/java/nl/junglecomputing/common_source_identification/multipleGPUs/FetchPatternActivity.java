@@ -36,11 +36,11 @@ public class FetchPatternActivity extends Activity {
     private static final long serialVersionUID = 1L;
     static final String LABEL = "FetchPattern";
 
-    private transient final LeafCorrelationsActivity lca;
+    private transient final CorrelationsActivity lca;
     private final GetNoisePatternsActivity.PatternsInfo request = new GetNoisePatternsActivity.PatternsInfo();
     private final ActivityIdentifier target;
 
-    public FetchPatternActivity(File[] files, int[] indices, LeafCorrelationsActivity lca, ActivityIdentifier target) {
+    public FetchPatternActivity(File[] files, int[] indices, CorrelationsActivity lca, ActivityIdentifier target) {
         super(new Context(LABEL, 1), true);
         request.indices = indices;
         request.files = files;
