@@ -25,7 +25,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.Device;
 import ibis.constellation.util.MemorySizes;
@@ -183,14 +182,12 @@ public class DeviceInfo implements Cloneable {
                 for (int i = 0; i < d.nWorkers; i++) {
                     DeviceInfo newd = (DeviceInfo) d.clone();
                     workers[nrWorkers++] = newd;
-                    Buffer bufferHWRGB = new Buffer(h * w * 3);
-                    newd.setExecutorData(new ExecutorData(newd.device, bufferHWRGB, h, w, nrBlocksForReduce, false));
+                    newd.setExecutorData(new ExecutorData(newd.device, h, w, nrBlocksForReduce, false));
                 }
                 for (int i = 0; i < d.nPatternProviders; i++) {
                     DeviceInfo newd = (DeviceInfo) d.clone();
                     providers[nrPatternProviders++] = newd;
-                    Buffer bufferHWRGB = new Buffer(h * w * 3);
-                    newd.setExecutorData(new ExecutorData(newd.device, bufferHWRGB, h, w, nrBlocksForReduce, false));
+                    newd.setExecutorData(new ExecutorData(newd.device, h, w, nrBlocksForReduce, false));
                 }
             }
         } catch (CloneNotSupportedException e) {

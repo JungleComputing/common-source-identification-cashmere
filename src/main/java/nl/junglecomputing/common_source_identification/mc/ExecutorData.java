@@ -46,7 +46,7 @@ public class ExecutorData {
     public static synchronized void initialize(int nrExecutors, Device device, int h, int w, int nrBlocksForReduce,
             boolean allocateFreq) {
         for (int i = 0; i < nrExecutors; i++) {
-            nonUsedExecutorData.add(new ExecutorData(device, new Buffer(h * w * 3), h, w, nrBlocksForReduce, allocateFreq));
+            nonUsedExecutorData.add(new ExecutorData(device, h, w, nrBlocksForReduce, allocateFreq));
         }
     }
 
@@ -141,7 +141,7 @@ public class ExecutorData {
     public Pointer noisePatternFreq2;
 
     // the constructor allocates all the data.
-    public ExecutorData(Device device, Buffer bufferHWRGB, int h, int w, int nrBlocksForReduce, boolean allocateFreq) {
+    public ExecutorData(Device device, int h, int w, int nrBlocksForReduce, boolean allocateFreq) {
         this.device = device;
         this.nrBlocksForReduce = nrBlocksForReduce;
 
@@ -158,7 +158,7 @@ public class ExecutorData {
         memFloat2 = device.allocate(Sizeof.cl_float);
         memDouble1 = device.allocate(Sizeof.cl_double);
 
-        bufferHWRGB = new Buffer(h * w * 3);
+        this.bufferHWRGB = new Buffer(h * w * 3);
 
         // ImageToGrayscale
         imageBuffer = bufferHWRGB;
