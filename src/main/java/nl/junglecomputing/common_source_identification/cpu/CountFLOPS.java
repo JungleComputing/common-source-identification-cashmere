@@ -30,9 +30,12 @@ public class CountFLOPS {
     static Map<ImageDims, Long> createFFTFlopsMap(boolean forward) {
         HashMap<ImageDims, Long> map = new HashMap<ImageDims, Long>();
         if (forward) {
-            map.put(new ImageDims(3000, 4000), 2351000000l);
+            map.put(new ImageDims(3000, 4000), 2852200000l);
+            map.put(new ImageDims(2736, 3648), 1798947504l);
         } else {
-            map.put(new ImageDims(3000, 4000), 2352800000l);
+            map.put(new ImageDims(3000, 4000), 2852200000l);
+            map.put(new ImageDims(2736, 3648), 1798947504l);
+
         }
         return map;
     }
