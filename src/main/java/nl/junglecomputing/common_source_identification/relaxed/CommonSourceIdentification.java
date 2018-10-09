@@ -169,7 +169,7 @@ public class CommonSourceIdentification {
         int nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
         long memReservedForGrayscale = height * width * 3 * nrThreads;
 
-        int nByteBuffers = 3 * nrNoisePatternsFreqDevice / 4 + 1;
+        int nByteBuffers = 4 * nrNoisePatternsFreqDevice / 3;
         logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
         ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
         // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
