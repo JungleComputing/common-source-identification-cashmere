@@ -37,7 +37,7 @@ public class FetchPatternActivity extends Activity {
     static final String LABEL = "FetchPattern";
 
     private transient final CorrelationsActivity lca;
-    private final GetNoisePatternsActivity.PatternsInfo request = new GetNoisePatternsActivity.PatternsInfo();
+    final GetNoisePatternsActivity.PatternsInfo request = new GetNoisePatternsActivity.PatternsInfo();
     private final ActivityIdentifier target;
 
     public FetchPatternActivity(File[] files, int[] indices, CorrelationsActivity lca, ActivityIdentifier target) {
@@ -57,7 +57,7 @@ public class FetchPatternActivity extends Activity {
 
     @Override
     public int process(Constellation constellation, Event event) {
-        lca.pushMessage(event);
+        lca.pushMessage(event, this);
         return FINISH;
     }
 

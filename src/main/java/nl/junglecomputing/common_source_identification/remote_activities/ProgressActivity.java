@@ -60,9 +60,10 @@ public class ProgressActivity extends Activity {
     private class ProgressTask extends TimerTask {
         @Override
         public void run() {
+            String message;
             synchronized (timer) {
                 double ratio = nrReceivedCorrelations / (double) nrCorrelationsToReceive;
-                String message = "Percentage of correlations: " + Math.round(ratio * 100) + "%";
+                message = "Percentage of correlations: " + Math.round(ratio * 100) + "%";
                 if (nrReceivedCorrelations > 0) {
                     long now = System.currentTimeMillis();
                     long elapsedMillis = now - startMillis;
@@ -80,11 +81,11 @@ public class ProgressActivity extends Activity {
                 } else {
                     startMillis = System.currentTimeMillis();
                 }
-                logger.info(message);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Received {}/{} notifications", nrReceivedCorrelations, nrCorrelationsToReceive);
                 }
             }
+            logger.info(message);
         }
     }
 
@@ -100,7 +101,6 @@ public class ProgressActivity extends Activity {
         this.nrReceivedCorrelationsPreviously = 0;
 
         this.timer = new Timer();
-        this.startMillis = System.currentTimeMillis();
     }
 
     @Override
@@ -108,9 +108,8 @@ public class ProgressActivity extends Activity {
         if (logger.isDebugEnabled()) {
             logger.debug("Starting the progress task");
         }
-
-        timer.schedule(new ProgressTask(), 0, PERIOD);
         startMillis = System.currentTimeMillis();
+        timer.schedule(new ProgressTask(), 0, PERIOD);
         return SUSPEND;
     }
 

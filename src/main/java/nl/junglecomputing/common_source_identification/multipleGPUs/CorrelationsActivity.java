@@ -37,7 +37,6 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
-import ibis.constellation.OrContext;
 import ibis.constellation.Timer;
 import ibis.constellation.util.ByteBufferCache;
 import nl.junglecomputing.common_source_identification.cpu.Correlation;
@@ -76,9 +75,9 @@ class CorrelationsActivity extends Activity {
     protected int h;
     protected int w;
 
-    protected Correlations correlations;
-    protected int nrReceivedCorrelations;
-    protected int nrCorrelationsToReceive;
+    protected transient Correlations correlations;
+    protected transient int nrReceivedCorrelations;
+    protected transient int nrCorrelationsToReceive;
 
     // identifies the activity that we notify the amount of correlations we have processed
     final protected ActivityIdentifier progressActivityID;
@@ -102,27 +101,27 @@ class CorrelationsActivity extends Activity {
     // debugging, keeps track of the amount of the total LeafCorrelationsActivities that are in flight on the node.
     static int inFlight = 0;
 
-    transient boolean[] needed;
-
     private transient DeviceInfo deviceInfo;
     private transient Device device;
     private transient int deviceNo;
 
-    private transient Event message = null;
+    private transient Event messageI = null;
+    private transient Event messageJ = null;
 
     private transient Random random;
+
+    private transient FetchPatternActivity fI;
+
+    private transient FetchPatternActivity fJ;
+
+    private transient String executor;
 
     private transient boolean leaf;
 
     CorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI, int[] indicesJ,
             int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level, ActivityIdentifier[][] providers) {
-        /*
-         * The images are subdivided over the nodes, for example, 0-25 to node A, 25-50 to B, 50-75 to C, and 75-100 to D.  The
-         * correlations (0-25, 0-25) will be assigned to node A, (25-50, 25-50) to A or B, etc.  Then the correlations (0-25, 25-50)
-         * could run efficiently on A and B since the images will likely to be there because of (0-25, 0-25) and (25-50, 25-50).
-         */
-        super(node1 == node2 ? new Context(LABEL + node1, level)
-                : new OrContext(new Context(LABEL + node1, level), new Context(LABEL + node2, level)), true);
+
+        super(new Context(LABEL, level), true);
 
         logger.debug("Creating Correlation with context {}, node1 = {}, node2 = {}, size1 = {}, size2 = {}",
                 getContext().toString(), node1, node2, indicesI.length, indicesJ.length);
@@ -143,15 +142,14 @@ class CorrelationsActivity extends Activity {
 
         this.h = h;
         this.w = w;
-
-        // These could be transient and initialized in initialize().
-        this.correlations = new Correlations();
-        this.nrReceivedCorrelations = 0;
-        this.nrCorrelationsToReceive = 0;
     }
 
     @Override
     public int initialize(Constellation cons) {
+
+        this.correlations = new Correlations();
+        this.nrReceivedCorrelations = 0;
+        this.nrCorrelationsToReceive = 0;
 
         if (logger.isDebugEnabled()) {
             logger.debug("Running Correlation, node1 = {}, node2 = {}, size1 = {}, size2 = {}", node1, node2, indicesI.length,
@@ -162,13 +160,14 @@ class CorrelationsActivity extends Activity {
             }
         }
 
-        String executor = cons.identifier().toString();
+        executor = cons.identifier().toString();
 
         // thresholdDC contains the total number of images a tile may contain.
         deviceInfo = DeviceInfo.getDeviceInfo(executor, LABEL);
-        if (indicesI.length + indicesJ.length <= deviceInfo.getThreshold()) {
+        int threshold = deviceInfo.getThreshold() / 2;
+        if (indicesI.length <= threshold && indicesJ.length <= threshold) {
             leaf = true;
-            return initializeLeaf(cons, executor);
+            return initializeLeaf(cons);
         }
         return initializeTree(cons);
     }
@@ -205,14 +204,9 @@ class CorrelationsActivity extends Activity {
         }
     }
 
-    public synchronized void pushMessage(Event event2) {
-        this.message = event2;
-        notifyAll();
-    }
-
     // private methods
 
-    private int initializeLeaf(Constellation cons, String executor) {
+    private int initializeLeaf(Constellation cons) {
 
         this.noisePatternsXFreq = new Pointer[indicesI.length];
         this.noisePatternsYFreq = new Pointer[indicesJ.length];
@@ -233,28 +227,23 @@ class CorrelationsActivity extends Activity {
             data = deviceInfo.getExecutorData();
             deviceNo = deviceInfo.getDeviceNo();
 
-            if (node1 != node2) {
-                retrieveRemoteFrequencyDomain(cons, executor);
-
-                computeCorrelations(cons);
-                logger.debug("Leaf: finishing");
-                return FINISH;
-
+            if (node1 != node2 || node1 != NodeInformation.ID) {
+                retrieveRemoteFrequencyDomain(cons);
             } else {
                 // In this case, all time domain patterns must be available in the cache.
                 if (indicesI[0] == indicesJ[0]) {
                     assert (indicesI.length == indicesJ.length);
                     // we need both the regular and flipped frequency domains as the i and j range overlap
-                    retrieveFrequencyDomain(cons, node1, indicesI, filesI, false, true);
+                    retrieveFrequencyDomain(cons, indicesI, filesI, false, true);
                 } else {
-                    retrieveFrequencyDomain(cons, node1, indicesI, filesI, REGULAR, false);
-                    retrieveFrequencyDomain(cons, node2, indicesJ, filesJ, FLIPPED, false);
+                    retrieveFrequencyDomain(cons, indicesI, filesI, REGULAR, false);
+                    retrieveFrequencyDomain(cons, indicesJ, filesJ, FLIPPED, false);
                 }
-
-                computeCorrelations(cons);
-                logger.debug("Leaf: finishing");
-                return FINISH;
             }
+
+            computeCorrelations(cons);
+            logger.debug("Leaf: finishing");
+            return FINISH;
 
         } catch (IOException | CashmereNotAvailable | LibFuncNotAvailable | NoSuitableExecutorException e) {
             logger.error("Got exception", e);
@@ -356,7 +345,7 @@ class CorrelationsActivity extends Activity {
     }
 
     // cooperatively retrieve the frequency domain of a specific range
-    private void retrieveFrequencyDomain(Constellation cons, int node, int[] indices, File[] files, boolean flipped, boolean both)
+    private void retrieveFrequencyDomain(Constellation cons, int[] indices, File[] files, boolean flipped, boolean both)
             throws CashmereNotAvailable, IOException, LibFuncNotAvailable {
 
         /*
@@ -368,7 +357,7 @@ class CorrelationsActivity extends Activity {
         do {
             for (int i = 0; i < indices.length; i++) {
                 if (!done[i]) {
-                    retrieveFrequencyDomain(cons, node, i, indices, files, flipped, both, done);
+                    retrieveFrequencyDomain(cons, i, indices, files, flipped, both, done);
                 }
             }
         } while (!allDone(done));
@@ -398,15 +387,153 @@ class CorrelationsActivity extends Activity {
      * - done[i] = false
      *   - the current thread does not hold locks for index
      */
-    private void retrieveFrequencyDomain(Constellation cons, int node, int i, int[] indices, File[] files, boolean flipped,
-            boolean both, boolean[] done) throws CashmereNotAvailable, LibFuncNotAvailable, IOException {
+    private void retrieveFrequencyDomain(Constellation cons, int i, int[] indices, File[] files, boolean flipped, boolean both,
+            boolean[] done) throws CashmereNotAvailable, LibFuncNotAvailable, IOException {
 
         if (!both) {
             retrieveFrequencyDomainSingle(cons, i, flipped, indices, files, done);
         } else {
             retrieveFrequencyDomainBoth(cons, i, indices, files, done);
         }
+    }
 
+    private FetchPatternActivity getFetcher(int node, int[] indices, File[] files, ArrayList<LockToken<Pointer>> ptrlocks,
+            ArrayList<LockToken<Buffer>> buflocks, ArrayList<LockToken<Pointer>> ptrlocksFlipped, boolean flipped, boolean both) {
+
+        if (node != NodeInformation.ID) {
+            Timer timer = Cashmere.getTimer("java", executor, "getFetcher");
+            int ev = timer.start();
+            for (int i = 0; i < indices.length; i++) {
+                buflocks.add(null);
+                ptrlocks.add(null);
+                ptrlocksFlipped.add(null);
+            }
+
+            // First try and get locks on all freq domain noise patterns.
+            boolean done = false;
+            while (!done) {
+                done = true;
+                for (int i = 0; i < indices.length; i++) {
+                    int index = indices[i];
+                    LockToken<Pointer> lt = ptrlocks.get(i);
+                    if (lt == null) {
+                        try {
+                            lt = NoisePatternCache.lockNoisePatternFreq(deviceNo, index, flipped);
+                            if (logger.isDebugEnabled()) {
+                                logger.debug("getFetcher: locking freq {} {} {}", index, string(flipped),
+                                        lt.readLock() ? "read" : "write");
+                            }
+                            if (lt.readLock()) {
+                                setNoisePatternFreq(i, flipped, lt.availableElement);
+                                // Keep the lock ...
+                            }
+                            ptrlocks.set(i, lt);
+                        } catch (LockException e) {
+                            done = false;
+                        }
+                    }
+                    if (both) {
+                        lt = ptrlocksFlipped.get(i);
+                        if (lt == null) {
+                            try {
+                                lt = NoisePatternCache.lockNoisePatternFreq(deviceNo, index, FLIPPED);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("getFetcher: locking freq {} {} {}", index, string(FLIPPED),
+                                            lt.readLock() ? "read" : "write");
+                                }
+                                if (lt.readLock()) {
+                                    setNoisePatternFreq(i, FLIPPED, lt.availableElement);
+                                    // Keep the lock ...
+                                }
+                                ptrlocksFlipped.set(i, lt);
+                            } catch (LockException e) {
+                                done = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Now we have read locks or write locks.
+            // Readlocks: fine. WriteLocks: depends: do we have the time domain pattern?
+            done = false;
+            while (!done) {
+                done = true;
+                for (int i = 0; i < indices.length; i++) {
+                    int index = indices[i];
+                    LockToken<Buffer> memlt = buflocks.get(i);
+                    if (memlt == null) {
+                        LockToken<Pointer> lt = ptrlocks.get(i);
+                        LockToken<Pointer> flt = ptrlocksFlipped.get(i);
+                        if (lt.writeLock() || (flt != null && flt.writeLock())) {
+                            try {
+                                memlt = NoisePatternCache.lockNoisePattern(index);
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug("getFetcher: locking time {} {}", index, memlt.readLock() ? "read" : "write");
+                                }
+                                buflocks.set(i, memlt);
+                            } catch (LockException e) {
+                                done = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            int[] toRequest = new int[indices.length];
+            File[] requestFiles = new File[indices.length];
+            int count = 0;
+            for (int i = 0; i < indices.length; i++) {
+                LockToken<Buffer> memlt = buflocks.get(i);
+                if (memlt != null && memlt.writeLock()) {
+                    toRequest[count] = indices[i];
+                    requestFiles[count] = files[i];
+                    count++;
+                }
+            }
+            toRequest = Arrays.copyOf(toRequest, count);
+            requestFiles = Arrays.copyOf(requestFiles, count);
+            timer.stop(ev);
+            return new FetchPatternActivity(requestFiles, toRequest, this,
+                    providers[node][random.nextInt(providers[node].length)]);
+        }
+        return null;
+    }
+
+    void handleAlreadyPresent(Constellation constellation, int[] indices, ArrayList<LockToken<Pointer>> ptrlocks,
+            ArrayList<LockToken<Pointer>> ptrlocksFlipped, ArrayList<LockToken<Buffer>> buflocks, boolean flipped, boolean both)
+            throws CashmereNotAvailable, LibFuncNotAvailable {
+        for (int i = 0; i < indices.length; i++) {
+            LockToken<Buffer> memlt = buflocks.get(i);
+            if (memlt != null && memlt.readLock()) {
+                int index = indices[i];
+                buflocks.set(i, null);
+                copyNoisePatternToDevice(index, device, memlt.availableElement);
+                NoisePatternCache.unlockNoisePattern(index);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("handleAlreadyPresent: unlocking time {}", index);
+                }
+                LockToken<Pointer> lt = ptrlocks.get(i);
+                ptrlocks.set(i, null);
+                if (lt != null && lt.writeLock()) {
+                    produceNoisePatternFreq(constellation, i, index, flipped, device, lt.availableElement);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("handleAlreadyPresent: toreadlock freq {} {}", index, string(flipped));
+                    }
+                    NoisePatternCache.toReadLockNoisePatternFreq(deviceNo, index, flipped);
+                }
+                lt = ptrlocksFlipped.get(i);
+                ptrlocksFlipped.set(i, null);
+                if (lt != null && lt.writeLock()) {
+                    produceNoisePatternFreq(constellation, i, index, FLIPPED, device, lt.availableElement);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("handleAlreadyPresent: toreadlock freq {} {}", index, string(FLIPPED));
+                    }
+                    NoisePatternCache.toReadLockNoisePatternFreq(deviceNo, index, FLIPPED);
+                }
+
+            }
+        }
     }
 
     /**
@@ -417,121 +544,51 @@ class CorrelationsActivity extends Activity {
      * @throws LibFuncNotAvailable
      * @throws CashmereNotAvailable
      */
-    private void retrieveRemoteFrequencyDomain(Constellation cons, String executor)
+    private void retrieveRemoteFrequencyDomain(Constellation cons)
             throws NoSuitableExecutorException, CashmereNotAvailable, LibFuncNotAvailable, IOException {
 
-        int[] indices = node1 == NodeInformation.ID ? indicesJ : indicesI;
-        boolean flipped = node1 == NodeInformation.ID;
-        File[] files = node1 == NodeInformation.ID ? filesJ : filesI;
-        int node = node1 == NodeInformation.ID ? node2 : node1;
-
-        int[] toRequest = new int[indices.length];
-        File[] reqFiles = new File[indices.length];
-        int nRequests = 0;
-        int[] haveTimePatterns = new int[indices.length];
-        int nHaveTimePatterns = 0;
-        ArrayList<LockToken<Pointer>> ptrlocks = new ArrayList<LockToken<Pointer>>();
-        ArrayList<LockToken<Buffer>> buflocks = new ArrayList<LockToken<Buffer>>();
-
-        needed = new boolean[indices.length];
-
-        for (int i = 0; i < indices.length; i++) {
-            buflocks.add(null);
-            ptrlocks.add(null);
+        ArrayList<LockToken<Pointer>> ptrlocksI = new ArrayList<LockToken<Pointer>>();
+        ArrayList<LockToken<Buffer>> buflocksI = new ArrayList<LockToken<Buffer>>();
+        ArrayList<LockToken<Pointer>> ptrlocksJ = new ArrayList<LockToken<Pointer>>();
+        ArrayList<LockToken<Buffer>> buflocksJ = new ArrayList<LockToken<Buffer>>();
+        ArrayList<LockToken<Pointer>> ptrlocksFlipped = new ArrayList<LockToken<Pointer>>();
+        ArrayList<LockToken<Pointer>> dummy = new ArrayList<LockToken<Pointer>>();
+        boolean both = node1 == node2 && indicesI[0] == indicesJ[0];
+        fI = getFetcher(node1, indicesI, filesI, ptrlocksI, buflocksI, ptrlocksFlipped, REGULAR, both);
+        fJ = null;
+        if (!both) {
+            fJ = getFetcher(node2, indicesJ, filesJ, ptrlocksJ, buflocksJ, dummy, FLIPPED, false);
         }
 
-        // First try and get locks on all freq domain noise patterns.
-        boolean done = false;
-        while (!done) {
-            done = true;
-            for (int i = 0; i < indices.length; i++) {
-                int index = indices[i];
-                LockToken<Pointer> lt = ptrlocks.get(i);
-                if (lt == null) {
-                    try {
-                        lt = NoisePatternCache.lockNoisePatternFreq(deviceNo, index, flipped);
-                        if (lt.readLock()) {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug("noise pattern freq {} {} on the device", index, string(flipped));
-                            }
-                            setNoisePatternFreq(i, flipped, lt.availableElement);
-                            // Keep the lock ...
-                        }
-                        ptrlocks.set(i, lt);
-                    } catch (LockException e) {
-                        done = false;
-                    }
-                }
-            }
+        if (fI != null) {
+            logger.debug(identifier().toString() + ": requesting " + Arrays.toString(fI.request.indices) + " from node " + node1);
+            cons.submit(fI);
+        }
+        if (fJ != null) {
+            logger.debug(identifier().toString() + ": requesting " + Arrays.toString(fJ.request.indices) + " from node " + node2);
+            cons.submit(fJ);
         }
 
-        // Now we have read locks or write locks.
-        // Readlocks: fine. WriteLocks: depends: do we have the time domain pattern?
-        done = false;
-        while (!done) {
-            done = true;
-            for (int i = 0; i < indices.length; i++) {
-                int index = indices[i];
-                LockToken<Buffer> memlt = buflocks.get(i);
-                if (memlt == null) {
-                    LockToken<Pointer> lt = ptrlocks.get(i);
-                    if (lt.writeLock()) {
-                        try {
-                            memlt = NoisePatternCache.lockNoisePattern(index);
-                            buflocks.set(i, memlt);
-                            if (memlt.readLock()) {
-                                // Yes, we have it!
-                                haveTimePatterns[nHaveTimePatterns++] = i;
-                            } else {
-                                reqFiles[nRequests] = files[i];
-                                toRequest[nRequests++] = index;
-                                needed[i] = true;
-                            }
-                        } catch (LockException e) {
-                            done = false;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (nRequests != 0) {
-            toRequest = Arrays.copyOf(toRequest, nRequests);
-            logger.debug(identifier().toString() + ": requesting NPs " + Arrays.toString(toRequest) + " from node " + node
-                    + ", flipped = " + flipped);
-            cons.submit(
-                    new FetchPatternActivity(reqFiles, toRequest, this, providers[node][random.nextInt(providers[node].length)]));
-        }
-
-        // Provide freq patterns that we can now. Note that we do this in the latency of the request if there is one.
-        for (int j = 0; j < nHaveTimePatterns; j++) {
-            int i = haveTimePatterns[j];
-            int index = indices[i];
-            LockToken<Buffer> memlt = buflocks.get(i);
-            buflocks.set(i, null);
-            assert (memlt.readLock());
-            copyNoisePatternToDevice(index, device, memlt.availableElement);
-            NoisePatternCache.unlockNoisePattern(index);
-            LockToken<Pointer> lt = ptrlocks.get(i);
-            assert (lt.writeLock());
-            ptrlocks.set(i, null);
-            produceNoisePatternFreq(cons, i, index, flipped, device, lt.availableElement);
-            NoisePatternCache.toReadLockNoisePatternFreq(deviceNo, index, flipped);
-        }
-
-        // Also retrieve the frequency domain patterns for "our" images. We also do this in the latency in case we have done a
-        // remote request.
-        if (flipped) {
-            retrieveFrequencyDomain(cons, node1, indicesI, filesI, REGULAR, false);
+        // Retrieve freq domains from what we already have.
+        if (fI == null) {
+            retrieveFrequencyDomain(cons, indicesI, filesI, REGULAR, false);
         } else {
-            retrieveFrequencyDomain(cons, node2, indicesJ, filesJ, FLIPPED, false);
+            handleAlreadyPresent(cons, indicesI, ptrlocksI, ptrlocksFlipped, buflocksI, REGULAR, both);
         }
 
-        if (nRequests != 0) {
-            Timer waitTimer = Cashmere.getTimer("java", executor, "waiting for noise patterns");
+        if (!both) {
+            if (fJ == null) {
+                retrieveFrequencyDomain(cons, indicesJ, filesJ, FLIPPED, false);
+            } else {
+                handleAlreadyPresent(cons, indicesJ, ptrlocksJ, dummy, buflocksJ, FLIPPED, false);
+            }
+        }
+
+        Timer waitTimer = Cashmere.getTimer("java", executor, "waiting for noise patterns");
+        if (fI != null || fJ != null) {
             int ev = waitTimer.start();
             synchronized (this) {
-                while (message == null) {
+                while (messageI == null && messageJ == null) {
                     try {
                         wait();
                     } catch (InterruptedException e) {
@@ -540,44 +597,81 @@ class CorrelationsActivity extends Activity {
                 }
             }
             waitTimer.stop(ev);
-            NPBuffer data = (NPBuffer) message.getData();
-            int count = 0;
-            // Note that we have kept the freq writelocks that we still need.
-            // Now, for all freq domain write locks compute freq domain pattern.
-            for (int i = 0; i < indices.length; i++) {
-                int index = indices[i];
-                if (needed[i]) {
-                    if (index != data.indices[count]) {
-                        throw new Error("Internal error");
+            if (messageI != null) {
+                handleMessageData(cons, (NPBuffer) messageI.getData(), indicesI, ptrlocksI, ptrlocksFlipped, buflocksI, REGULAR);
+                messageI = null;
+            } else {
+                handleMessageData(cons, (NPBuffer) messageJ.getData(), indicesJ, ptrlocksJ, dummy, buflocksJ, FLIPPED);
+                messageJ = null;
+            }
+        }
+        if (fI != null && fJ != null) {
+            int ev = waitTimer.start();
+            synchronized (this) {
+                while (messageI == null && messageJ == null) {
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        // ignore
                     }
-                    Buffer buf = data.buf[count++];
-                    LockToken<Pointer> ltp = ptrlocks.get(i);
-                    if (ltp.writeLock()) {
-                        LockToken<Buffer> ltb = buflocks.get(i);
-                        if (ltb.writeLock()) {
-                            ltb.availableElement.getByteBuffer().clear();
-                            buf.getByteBuffer().rewind();
-                            ltb.availableElement.getByteBuffer().put(buf.getByteBuffer()); // pity that we have to copy
-                            ltb.availableElement.getByteBuffer().rewind();
-                        } else {
-                            assert (ltb.readLock());
-                        }
-                        copyNoisePatternToDevice(index, device, ltb.availableElement);
-                        NoisePatternCache.unlockNoisePattern(index);
-                        try {
-                            produceNoisePatternFreq(cons, i, index, flipped, device, ltp.availableElement);
-                        } catch (CashmereNotAvailable | LibFuncNotAvailable e) {
-                            logger.error("Got exception", e);
-                            throw new Error(e);
-                        }
-                        NoisePatternCache.toReadLockNoisePatternFreq(deviceNo, index, flipped);
-                    } else {
-                        throw new Error("Internal error");
+                }
+            }
+            waitTimer.stop(ev);
+            if (messageI != null) {
+                handleMessageData(cons, (NPBuffer) messageI.getData(), indicesI, ptrlocksI, ptrlocksFlipped, buflocksI, REGULAR);
+                messageI = null;
+            } else {
+                handleMessageData(cons, (NPBuffer) messageJ.getData(), indicesJ, ptrlocksJ, dummy, buflocksJ, FLIPPED);
+                messageJ = null;
+            }
+        }
+    }
+
+    private void handleMessageData(Constellation constellation, NPBuffer data, int[] indices,
+            ArrayList<LockToken<Pointer>> ptrlocks, ArrayList<LockToken<Pointer>> ptrlocksFlipped,
+            ArrayList<LockToken<Buffer>> buflocks, boolean flipped) throws CashmereNotAvailable, LibFuncNotAvailable {
+        int count = 0;
+        // Note that we have kept the freq writelocks that we still need.
+        // Now, for all freq domain write locks compute freq domain pattern.
+        Timer timer = Cashmere.getTimer("java", executor, "process message");
+        int ev = timer.start();
+        for (int i = 0; i < indices.length; i++) {
+            int index = indices[i];
+            LockToken<Buffer> ltb = buflocks.get(i);
+            if (ltb != null && ltb.writeLock()) {
+                if (index != data.indices[count]) {
+                    throw new Error("Internal error");
+                }
+                Buffer buf = data.buf[count++];
+                ltb.availableElement.getByteBuffer().clear();
+                buf.getByteBuffer().rewind();
+                ltb.availableElement.getByteBuffer().put(buf.getByteBuffer()); // pity that we have to copy
+                ltb.availableElement.getByteBuffer().rewind();
+                ByteBufferCache.makeAvailableByteBuffer(buf.getByteBuffer());
+                copyNoisePatternToDevice(index, device, ltb.availableElement);
+                NoisePatternCache.unlockNoisePattern(index);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("handleMessageData: unlock time {}", index);
+                }
+                LockToken<Pointer> ltp = ptrlocks.get(i);
+                if (ltp != null && ltp.writeLock()) {
+                    produceNoisePatternFreq(constellation, i, index, flipped, device, ltp.availableElement);
+                    NoisePatternCache.toReadLockNoisePatternFreq(deviceNo, index, flipped);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("handleMessageData: toreadlock freq {} {}", index, string(flipped));
                     }
-                    ByteBufferCache.makeAvailableByteBuffer(buf.getByteBuffer());
+                }
+                ltp = ptrlocksFlipped.get(i);
+                if (ltp != null && ltp.writeLock()) {
+                    produceNoisePatternFreq(constellation, i, index, FLIPPED, device, ltp.availableElement);
+                    NoisePatternCache.toReadLockNoisePatternFreq(deviceNo, index, FLIPPED);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("handleMessageData: toreadlock freq {} {}", index, string(FLIPPED));
+                    }
                 }
             }
         }
+        timer.stop(ev);
     }
 
     /*
@@ -894,6 +988,15 @@ class CorrelationsActivity extends Activity {
 
     private String string(boolean flipped) {
         return flipped ? "flipped" : "regular";
+    }
+
+    public synchronized void pushMessage(Event event2, FetchPatternActivity a) {
+        if (a == fI) {
+            messageI = event2;
+        } else {
+            messageJ = event2;
+        }
+        notifyAll();
     }
 
 }

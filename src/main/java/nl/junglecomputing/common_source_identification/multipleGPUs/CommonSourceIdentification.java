@@ -82,7 +82,7 @@ public class CommonSourceIdentification {
 
         StealPool stealPool = new StealPool(NodeInformation.STEALPOOL);
         StealPool localPool = new StealPool(NodeInformation.STEALPOOL + NodeInformation.ID);
-        Context ctxt = new Context(CorrelationsActivity.LABEL + NodeInformation.ID);
+        Context ctxt = new Context(CorrelationsActivity.LABEL);
 
         ConfigurationFactory configurationFactory = new ConfigurationFactory();
 
@@ -101,6 +101,10 @@ public class CommonSourceIdentification {
                     StealStrategy.BIGGEST, StealStrategy.SMALLEST);
         }
 
+        if (nrNoisePatternProviders == 0) {
+            // Need one for statistics collector.
+            nrNoisePatternProviders = 1;
+        }
         configurationFactory.createConfigurations(nrNoisePatternProviders, stealPool, stealPool,
                 new Context(GetNoisePatternsActivity.LABEL + NodeInformation.ID), StealStrategy.BIGGEST, StealStrategy.SMALLEST);
 
@@ -121,7 +125,7 @@ public class CommonSourceIdentification {
         for (DeviceInfo info : DeviceInfo.info) {
             total += info.getnWorkers() * info.getThreshold();
         }
-        int nByteBuffers = 3 * total / 4;
+        int nByteBuffers = 4 * total / 3;
         logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
         ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
         // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
@@ -267,16 +271,19 @@ public class CommonSourceIdentification {
                 // Start activities for noise pattern providers.
                 ActivityIdentifier[][] providers = new ActivityIdentifier[nrNodes][nrNoisePatternProviders];
 
-                MultiEventCollector providerCollector = new MultiEventCollector(new Context(NodeInformation.LABEL),
-                        nrNodes * nrNoisePatternProviders);
-                ActivityIdentifier cid = Cashmere.submit(providerCollector);
-                for (int i = 0; i < nrNodes; i++) {
-                    for (int j = 0; j < nrNoisePatternProviders; j++) {
-                        Activity provider = new GetNoisePatternsActivity(cid, height, width, i);
-                        providers[i][j] = Cashmere.submit(provider);
+                if (nrNoisePatternProviders > 0) {
+                    // They are not needed when running on 1 node.
+                    MultiEventCollector providerCollector = new MultiEventCollector(new Context(NodeInformation.LABEL),
+                            nrNodes * nrNoisePatternProviders);
+                    ActivityIdentifier cid = Cashmere.submit(providerCollector);
+                    for (int i = 0; i < nrNodes; i++) {
+                        for (int j = 0; j < nrNoisePatternProviders; j++) {
+                            Activity provider = new GetNoisePatternsActivity(cid, height, width, i);
+                            providers[i][j] = Cashmere.submit(provider);
+                        }
                     }
+                    providerCollector.waitForEvents();
                 }
-                providerCollector.waitForEvents();
 
                 // Determine locations for time domain noise patterns.
                 int[] locations;
