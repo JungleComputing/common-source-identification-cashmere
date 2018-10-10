@@ -162,9 +162,13 @@ public class DeviceInfo implements Cloneable {
             info[i].setnPatternProviders(patternProviders[i]);
             info[i].setnWorkers(correlationWorkers[i]);
             if (correlationWorkers[i] > 0) {
-                info[i].setThreshold(
-                        (int) ((availableMem[i] - (correlationWorkers[i] + patternProviders[i]) * memoryToBeReservedPerThread
-                                - 200 * MemorySizes.MB) / patternSize) / correlationWorkers[i]);
+                int threshold = (int) ((availableMem[i]
+                        - (correlationWorkers[i] + patternProviders[i]) * memoryToBeReservedPerThread - 200 * MemorySizes.MB)
+                        / patternSize) / correlationWorkers[i];
+                if (threshold % 2 != 0) {
+                    threshold--;
+                }
+                info[i].setThreshold(threshold);
             }
 
             if (logger.isInfoEnabled()) {
