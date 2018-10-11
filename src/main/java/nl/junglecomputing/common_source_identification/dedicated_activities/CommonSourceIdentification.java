@@ -47,6 +47,8 @@ import ibis.constellation.NoSuitableExecutorException;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
+import ibis.constellation.util.ByteBufferCache;
+import ibis.constellation.util.MemorySizes;
 import ibis.constellation.util.MultiEventCollector;
 import ibis.constellation.util.SingleEventCollector;
 import nl.junglecomputing.common_source_identification.Version;
@@ -59,10 +61,10 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.device_mem_cache.CacheConfig;
+import nl.junglecomputing.common_source_identification.device_mem_cache.NoisePatternCache;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
-import nl.junglecomputing.common_source_identification.remote_activities.CorrelationMatrixActivity;
-import nl.junglecomputing.common_source_identification.remote_activities.ProgressActivity;
 
 public class CommonSourceIdentification {
 
@@ -109,6 +111,37 @@ public class CommonSourceIdentification {
                 new Context(GetNoisePatternsActivity.LABEL + NodeInformation.ID), StealStrategy.BIGGEST, StealStrategy.SMALLEST);
 
         return configurationFactory.getConfigurations();
+    }
+
+    public static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
+        int sizeNoisePattern = height * width * 4;
+        int sizeNoisePatternFreq = sizeNoisePattern * 2;
+        logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
+        logger.info("Size of noise pattern freq: " + MemorySizes.toStringBytes(sizeNoisePatternFreq));
+
+        int nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
+        long memReservedForGrayscale = height * width * 3 * nrThreads;
+
+        int nByteBuffers = 3 * nrNoisePatternsFreqDevice / 4 + 1;
+        logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
+        ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
+        // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
+        // to prevent the ByteBufferCache from allocating new buffers when a threshold is reached.
+        memReservedForGrayscale += ((long) height) * width * 4 * nByteBuffers;
+
+        int nrNoisePatternsMemory = Math.min(CacheConfig.getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale),
+                nImages);
+
+        logger.info("memReservedForGrayscale = " + MemorySizes.toStringBytes(memReservedForGrayscale));
+        logger.info("nrNoisePatternsMemory = " + nrNoisePatternsMemory);
+
+        NoisePatternCache.initialize(device, height, width, nrNoisePatternsFreqDevice, nrNoisePatternsMemory);
+
+        return nrNoisePatternsFreqDevice;
+    }
+
+    public static void clearCaches() {
+        NoisePatternCache.clear();
     }
 
     static CorrelationMatrix submitCorrelations(SingleEventCollector sec, ActivityIdentifier id, ActivityIdentifier progress,
@@ -204,8 +237,8 @@ public class CommonSourceIdentification {
             // we initialize for all executors private data.
             // we need nrLocalExecutors+nrNoisePatternProviders of them,
             ExecutorData.initialize(nWorkers, device, height, width, nrBlocksForReduce, false);
-            int nrNoisePatternsFreqDevice = nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification
-                    .initializeCache(device, height, width, memoryToBeReservedPerThread * nWorkers, nWorkers, imageFiles.length);
+            int nrNoisePatternsFreqDevice = initializeCache(device, height, width, memoryToBeReservedPerThread * nWorkers,
+                    nWorkers, imageFiles.length);
 
             // we compute a value for the threshold for subdivision of work
             // based on the number of noise patterns on the
@@ -364,7 +397,7 @@ public class CommonSourceIdentification {
             Cashmere.done();
 
             // cleanup
-            nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.clearCaches();
+            clearCaches();
             Cashmere.deinitializeLibraries();
 
             // explicit exit because the FFT library sometimes keeps threads
