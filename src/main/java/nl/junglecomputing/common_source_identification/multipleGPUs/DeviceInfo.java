@@ -48,7 +48,7 @@ public class DeviceInfo implements Cloneable {
     private static HashMap<String, Integer> workerMap = new HashMap<String, Integer>();
     private static HashMap<String, Integer> providerMap = new HashMap<String, Integer>();
 
-    public static void initialize(int nWorkers, int nPatternProviders, long memoryToBeReservedPerThread, int h, int w,
+    public static int initialize(int nWorkers, int nPatternProviders, long memoryToBeReservedPerThread, int h, int w,
             int nrBlocksForReduce) {
 
         int nrWorkers = nWorkers;
@@ -158,6 +158,8 @@ public class DeviceInfo implements Cloneable {
             nrPatternProviders--;
         }
 
+        int smallestThreshold = Integer.MAX_VALUE;
+
         for (int i = 0; i < info.length; i++) {
             info[i].setnPatternProviders(patternProviders[i]);
             info[i].setnWorkers(correlationWorkers[i]);
@@ -169,6 +171,9 @@ public class DeviceInfo implements Cloneable {
                     threshold--;
                 }
                 info[i].setThreshold(threshold);
+                if (threshold < smallestThreshold) {
+                    smallestThreshold = threshold;
+                }
             }
 
             if (logger.isInfoEnabled()) {
@@ -198,6 +203,7 @@ public class DeviceInfo implements Cloneable {
             logger.error("Should not happen!", e);
             throw new Error(e);
         }
+        return smallestThreshold;
     }
 
     private static DeviceInfo getInfo(String worker, DeviceInfo[] infos, Map<String, Integer> map) {

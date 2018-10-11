@@ -244,8 +244,11 @@ public class CommonSourceIdentification {
             long memoryToBeReservedPerThread = ExecutorData.memoryForKernelExecutionThread(height, width, nrBlocksForReduce,
                     false);
 
-            DeviceInfo.initialize(nrLocalExecutors, nrNoisePatternProviders, memoryToBeReservedPerThread, height, width,
-                    nrBlocksForReduce);
+            int temp = DeviceInfo.initialize(nrLocalExecutors, nrNoisePatternProviders, memoryToBeReservedPerThread, height,
+                    width, nrBlocksForReduce);
+            if (temp < Integer.MAX_VALUE && temp > 8) {
+                CHUNK_THRESHOLD = temp;
+            }
 
             int nWorkers = nrLocalExecutors + nrNoisePatternProviders;
 
