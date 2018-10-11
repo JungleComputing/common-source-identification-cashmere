@@ -51,7 +51,7 @@ public class TreeCorrelationsActivity extends CorrelationsActivity {
     public TreeCorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI,
             int[] indicesJ, int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level,
             ActivityIdentifier[][] providers) {
-        super(parent, progressActivityID, indicesI, indicesJ, node1, node2, filesI, filesJ, h, w, level, providers);
+        super(false, parent, progressActivityID, indicesI, indicesJ, node1, node2, filesI, filesJ, h, w, level, providers);
 
         logger.debug("Creating TreeCorrelation, node1 = {}, node2 = {}, size1 = {}, size2 = {}, level = {}", node1, node2,
                 indicesI.length, indicesJ.length, level);

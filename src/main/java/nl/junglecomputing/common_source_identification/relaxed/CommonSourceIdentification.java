@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
+import ibis.constellation.AbstractContext;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
@@ -44,6 +45,7 @@ import ibis.constellation.ConstellationProperties;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
+import ibis.constellation.OrContext;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
@@ -92,7 +94,8 @@ public class CommonSourceIdentification {
 
         StealPool stealPool = new StealPool(NodeInformation.STEALPOOL);
         StealPool localPool = new StealPool(NodeInformation.STEALPOOL + NodeInformation.ID);
-        Context ctxt = new Context(CorrelationsActivity.LABEL);
+        AbstractContext ctxt = new OrContext(new Context(CorrelationsActivity.LABEL + NodeInformation.ID),
+                new Context(CorrelationsActivity.LABEL));
 
         ConfigurationFactory configurationFactory = new ConfigurationFactory();
 
