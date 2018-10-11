@@ -37,17 +37,18 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
+import ibis.constellation.OrContext;
 import ibis.constellation.Timer;
 import ibis.constellation.util.ByteBufferCache;
 import nl.junglecomputing.common_source_identification.cpu.Correlation;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.dedicated_activities.Correlations;
 import nl.junglecomputing.common_source_identification.device_mem_cache.LockToken;
 import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
 import nl.junglecomputing.common_source_identification.mc.ComputeCorrelation;
 import nl.junglecomputing.common_source_identification.mc.ComputeFrequencyDomain;
 import nl.junglecomputing.common_source_identification.mc.ComputeNoisePattern;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
-import nl.junglecomputing.common_source_identification.remote_activities.Correlations;
 
 class CorrelationsActivity extends Activity {
 
@@ -121,7 +122,9 @@ class CorrelationsActivity extends Activity {
     CorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI, int[] indicesJ,
             int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level, ActivityIdentifier[][] providers) {
 
-        super(new Context(LABEL, level), true);
+        super(node1 == node2 ? new OrContext(new Context(LABEL + node1, level), new Context(LABEL, level))
+                : new OrContext(new Context(LABEL + node1, level), new Context(LABEL + node2, level), new Context(LABEL, level)),
+                true);
 
         logger.debug("Creating Correlation with context {}, node1 = {}, node2 = {}, size1 = {}, size2 = {}",
                 getContext().toString(), node1, node2, indicesI.length, indicesJ.length);

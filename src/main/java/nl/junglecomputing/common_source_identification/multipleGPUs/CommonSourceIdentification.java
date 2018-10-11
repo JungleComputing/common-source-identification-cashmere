@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Cashmere;
+import ibis.constellation.AbstractContext;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
@@ -42,6 +43,7 @@ import ibis.constellation.ConstellationProperties;
 import ibis.constellation.Context;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
+import ibis.constellation.OrContext;
 import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
@@ -59,10 +61,10 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.dedicated_activities.CorrelationMatrixActivity;
+import nl.junglecomputing.common_source_identification.dedicated_activities.ProgressActivity;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
-import nl.junglecomputing.common_source_identification.remote_activities.CorrelationMatrixActivity;
-import nl.junglecomputing.common_source_identification.remote_activities.ProgressActivity;
 
 public class CommonSourceIdentification {
 
@@ -80,7 +82,9 @@ public class CommonSourceIdentification {
 
         StealPool stealPool = new StealPool(NodeInformation.STEALPOOL);
         StealPool localPool = new StealPool(NodeInformation.STEALPOOL + NodeInformation.ID);
-        Context ctxt = new Context(CorrelationsActivity.LABEL);
+        // preference for "local" jobs, but can steal anything.
+        AbstractContext ctxt = new OrContext(new Context(CorrelationsActivity.LABEL + NodeInformation.ID),
+                new Context(CorrelationsActivity.LABEL));
 
         ConfigurationFactory configurationFactory = new ConfigurationFactory();
 
@@ -137,6 +141,10 @@ public class CommonSourceIdentification {
         logger.info("nrNoisePatternsMemory = " + nrNoisePatternsMemory);
 
         NoisePatternCache.initialize(height, width, nrNoisePatternsMemory);
+    }
+
+    public static void clearCaches() {
+        NoisePatternCache.clear();
     }
 
     static CorrelationMatrix submitCorrelations(SingleEventCollector sec, ActivityIdentifier id, ActivityIdentifier progress,
@@ -393,7 +401,7 @@ public class CommonSourceIdentification {
             Cashmere.done();
 
             // cleanup
-            nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.clearCaches();
+            clearCaches();
             Cashmere.deinitializeLibraries();
 
             // explicit exit because the FFT library sometimes keeps threads
