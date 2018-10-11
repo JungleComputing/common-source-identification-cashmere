@@ -59,7 +59,6 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
-import nl.junglecomputing.common_source_identification.dedicated_activities.GetStatsActivity;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
 import nl.junglecomputing.common_source_identification.remote_activities.CorrelationMatrixActivity;
@@ -76,8 +75,7 @@ public class CommonSourceIdentification {
      * in the cluster using the SGE job submission system.
      */
 
-    static ConstellationConfiguration[] getConfigurations() {
-        int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
+    static ConstellationConfiguration[] getConfigurations(int nrLocalExecutors) {
         int nrNoisePatternProviders = NodeInformation.getNrExecutors("np.providers", 2);
 
         StealPool stealPool = new StealPool(NodeInformation.STEALPOOL);
@@ -209,6 +207,15 @@ public class CommonSourceIdentification {
             }
         }
 
+        // For now, we check the number of executors, since we cannot set them per node.
+        int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 4);
+        if ("node026".equals(NodeInformation.HOSTNAME) || "node029".equals(NodeInformation.HOSTNAME)) {
+            nrLocalExecutors = 7;
+        } else if ("node028".equals(NodeInformation.HOSTNAME)) {
+            // K20 node; much less memory.
+            nrLocalExecutors = 2;
+        }
+
         try {
             File[] imageFiles = IO.getImageFiles(nameImageDir);
             ImageDims imageDims = new ImageDims(imageFiles[0]);
@@ -219,10 +226,9 @@ public class CommonSourceIdentification {
             Properties p = System.getProperties();
             p.setProperty(ConstellationProperties.S_MASTER, NodeInformation.ID == 0 ? "true" : "false");
 
-            Cashmere.initialize(getConfigurations(), p);
+            Cashmere.initialize(getConfigurations(nrLocalExecutors), p);
             Constellation constellation = Cashmere.getConstellation();
 
-            int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
             int nrNoisePatternProviders = NodeInformation.getNrExecutors("np.providers", 2);
 
             // we set the number of blocks for reduction operations to the following value
