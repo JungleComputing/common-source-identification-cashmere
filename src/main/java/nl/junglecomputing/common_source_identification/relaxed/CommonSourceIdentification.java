@@ -61,14 +61,14 @@ import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
 import nl.junglecomputing.common_source_identification.cpu.Linkage;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.dedicated_activities.CorrelationMatrixActivity;
 import nl.junglecomputing.common_source_identification.dedicated_activities.GetNoisePatternsActivity;
 import nl.junglecomputing.common_source_identification.dedicated_activities.GetStatsActivity;
+import nl.junglecomputing.common_source_identification.dedicated_activities.ProgressActivity;
 import nl.junglecomputing.common_source_identification.device_mem_cache.CacheConfig;
 import nl.junglecomputing.common_source_identification.device_mem_cache.NoisePatternCache;
 import nl.junglecomputing.common_source_identification.mc.ExecutorData;
 import nl.junglecomputing.common_source_identification.mc.FFT;
-import nl.junglecomputing.common_source_identification.remote_activities.CorrelationMatrixActivity;
-import nl.junglecomputing.common_source_identification.remote_activities.ProgressActivity;
 
 public class CommonSourceIdentification {
 
@@ -117,6 +117,37 @@ public class CommonSourceIdentification {
         return configurationFactory.getConfigurations();
     }
 
+    public static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
+        int sizeNoisePattern = height * width * 4;
+        int sizeNoisePatternFreq = sizeNoisePattern * 2;
+        logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
+        logger.info("Size of noise pattern freq: " + MemorySizes.toStringBytes(sizeNoisePatternFreq));
+
+        int nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
+        long memReservedForGrayscale = height * width * 3 * nrThreads;
+
+        int nByteBuffers = 4 * nrNoisePatternsFreqDevice / 3;
+        logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
+        ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
+        // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
+        // to prevent the ByteBufferCache from allocating new buffers when a threshold is reached.
+        memReservedForGrayscale += ((long) height) * width * 4 * nByteBuffers;
+
+        int nrNoisePatternsMemory = Math.min(CacheConfig.getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale),
+                nImages);
+
+        logger.info("memReservedForGrayscale = " + MemorySizes.toStringBytes(memReservedForGrayscale));
+        logger.info("nrNoisePatternsMemory = " + nrNoisePatternsMemory);
+
+        NoisePatternCache.initialize(device, height, width, nrNoisePatternsFreqDevice, nrNoisePatternsMemory);
+
+        return nrNoisePatternsFreqDevice;
+    }
+
+    public static void clearCaches() {
+        NoisePatternCache.clear();
+    }
+
     static CorrelationMatrix submitCorrelations(SingleEventCollector sec, ActivityIdentifier id, ActivityIdentifier progress,
             int height, int width, List<String> nodes, int[][] lists, File[][] filesList, int nExecutors,
             ActivityIdentifier[][] providers) throws NoSuitableExecutorException {
@@ -157,34 +188,6 @@ public class CommonSourceIdentification {
 
         logger.debug("Submitted correlationActivities");
         return (CorrelationMatrix) sec.waitForEvent().getData();
-
-    }
-
-    public static int initializeCache(Device device, int height, int width, long toBeReserved, int nrThreads, int nImages) {
-        int sizeNoisePattern = height * width * 4;
-        int sizeNoisePatternFreq = sizeNoisePattern * 2;
-        logger.info("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
-        logger.info("Size of noise pattern freq: " + MemorySizes.toStringBytes(sizeNoisePatternFreq));
-
-        int nrNoisePatternsFreqDevice = CacheConfig.getNrNoisePatternsDevice(sizeNoisePatternFreq, toBeReserved);
-        long memReservedForGrayscale = height * width * 3 * nrThreads;
-
-        int nByteBuffers = 4 * nrNoisePatternsFreqDevice / 3;
-        logger.info("Reserving " + nByteBuffers + " bytebuffers for communication");
-        ByteBufferCache.initializeByteBuffers(height * width * 4, nByteBuffers);
-        // need memory for (de)serialization of byte buffers. We actually allocate a bit more than we will need,
-        // to prevent the ByteBufferCache from allocating new buffers when a threshold is reached.
-        memReservedForGrayscale += ((long) height) * width * 4 * nByteBuffers;
-
-        int nrNoisePatternsMemory = Math.min(CacheConfig.getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale),
-                nImages);
-
-        logger.info("memReservedForGrayscale = " + MemorySizes.toStringBytes(memReservedForGrayscale));
-        logger.info("nrNoisePatternsMemory = " + nrNoisePatternsMemory);
-
-        NoisePatternCache.initialize(device, height, width, nrNoisePatternsFreqDevice, nrNoisePatternsMemory);
-
-        return nrNoisePatternsFreqDevice;
     }
 
     public static void main(String[] args) throws NoSuitableExecutorException {
@@ -397,7 +400,7 @@ public class CommonSourceIdentification {
             Cashmere.done();
 
             // cleanup
-            nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.clearCaches();
+            clearCaches();
             Cashmere.deinitializeLibraries();
 
             // explicit exit because the FFT library sometimes keeps threads

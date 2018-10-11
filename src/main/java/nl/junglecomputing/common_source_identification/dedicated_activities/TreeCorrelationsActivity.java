@@ -27,7 +27,6 @@ import ibis.constellation.Constellation;
 import ibis.constellation.Event;
 import ibis.constellation.NoSuitableExecutorException;
 import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
-import nl.junglecomputing.common_source_identification.remote_activities.Correlations;
 
 /*
  * TreeCorrelationsActivity instances will be subdivided into smaller instances depending on the threshold.  The threshold is

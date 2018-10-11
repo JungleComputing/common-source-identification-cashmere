@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Context;
-import nl.junglecomputing.common_source_identification.remote_activities.Correlations;
+import nl.junglecomputing.common_source_identification.dedicated_activities.Correlations;
 
 // The base class for Leaf- and TreeCorrelationsActivity
 abstract class CorrelationsActivity extends Activity {

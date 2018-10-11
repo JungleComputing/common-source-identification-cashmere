@@ -25,7 +25,6 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Context;
 import ibis.constellation.OrContext;
-import nl.junglecomputing.common_source_identification.remote_activities.Correlations;
 
 // The base class for Leaf- and TreeCorrelationsActivity
 abstract class CorrelationsActivity extends Activity {
