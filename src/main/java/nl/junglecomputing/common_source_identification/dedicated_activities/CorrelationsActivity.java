@@ -25,6 +25,7 @@ import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Context;
 import ibis.constellation.OrContext;
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
 
 // The base class for Leaf- and TreeCorrelationsActivity
 abstract class CorrelationsActivity extends Activity {
@@ -62,15 +63,18 @@ abstract class CorrelationsActivity extends Activity {
 
     final protected ActivityIdentifier[][] providers;
 
-    CorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI, int[] indicesJ,
-            int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level, ActivityIdentifier[][] providers) {
+    CorrelationsActivity(boolean leaf, ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI,
+            int[] indicesJ, int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level,
+            ActivityIdentifier[][] providers) {
         /*
          * The images are subdivided over the nodes, for example, 0-25 to node A, 25-50 to B, 50-75 to C, and 75-100 to D.  The
          * correlations (0-25, 0-25) will be assigned to node A, (25-50, 25-50) to A or B, etc.  Then the correlations (0-25, 25-50)
          * could run efficiently on A and B since the images will likely to be there because of (0-25, 0-25) and (25-50, 25-50).
          */
         super(node1 == node2 ? new Context(LABEL + node1, level)
-                : new OrContext(new Context(LABEL + node1, level), new Context(LABEL + node2, level)), true);
+                : leaf ? new Context(LABEL + NodeInformation.ID, level)
+                        : new OrContext(new Context(LABEL + node1, level), new Context(LABEL + node2, level)),
+                true);
 
         logger.debug("Creating correlationsActivity with context " + getContext().toString() + ": " + indicesI.length + "x"
                 + indicesJ.length);

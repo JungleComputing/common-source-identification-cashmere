@@ -98,7 +98,7 @@ class LeafCorrelationsActivity extends CorrelationsActivity {
             int hostI, int hostJ, File[] filesI, File[] filesJ, int h, int w, int level, ActivityIdentifier[][] providers) {
 
         // made node2 node1 always equal, to trigger the fact that this should be local.
-        super(parent, progressActivityID, indicesI, indicesJ, hostI, hostJ, filesI, filesJ, h, w, level, providers);
+        super(true, parent, progressActivityID, indicesI, indicesJ, hostI, hostJ, filesI, filesJ, h, w, level, providers);
         logger.debug("Creating LeafCorrelation, node1 = {}, node2 = {}, size1 = {}, size2 = {}", node1, node2, indicesI.length,
                 indicesJ.length);
     }
