@@ -97,6 +97,178 @@ abstract class CorrelationsActivity extends Activity {
         this.nrCorrelationsToReceive = 0;
     }
 
+/*
+ * Copyright 2018 Vrije Universiteit Amsterdam, The Netherlands
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package nl.junglecomputing.common_source_identification.relaxed;
+
+import java.io.File;
+import java.util.Arrays;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Constellation;
+import ibis.constellation.Event;
+import ibis.constellation.NoSuitableExecutorException;
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.dedicated_activities.Correlations;
+
+/*
+ * TreeCorrelationsActivity instances will be subdivided into smaller instances depending on the threshold.  The threshold is
+ * determined on initialization and depends on the number of executors and the memory that is available on the many-core device.
+ * TreeCorrelationsActivities can be stolen by other nodes, which means that then the threshold may be different.  In the end,
+ * they will split up into LeafCorrelationsActivities that cannot be stolen any longer and have to be executed by the node on
+ * which they are created.
+ */
+public class TreeCorrelationsActivity extends CorrelationsActivity {
+
+    private static final long serialVersionUID = 1L;
+
+    static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.TreeCorrelationsActivity");
+    static Logger memlogger = LoggerFactory.getLogger("CommonSourceIdentification.Cache");
+
+    private String nodeCreatorActivity;
+
+    // debugging, the number of TreeCorrelationsActivities in flight
+    static int inFlight = 0;
+
+    public TreeCorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI,
+            int[] indicesJ, int node1, int node2, File[] filesI, File[] filesJ, int h, int w, int level,
+            ActivityIdentifier[][] providers) {
+        super(false, parent, progressActivityID, indicesI, indicesJ, node1, node2, filesI, filesJ, h, w, level, providers);
+
+        logger.debug("Creating TreeCorrelation, node1 = {}, node2 = {}, size1 = {}, size2 = {}, level = {}", node1, node2,
+                indicesI.length, indicesJ.length, level);
+
+        // the hostname of the node that created this
+        this.nodeCreatorActivity = NodeInformation.HOSTNAME;
+    }
+
+/*
+ * Copyright 2018 Vrije Universiteit Amsterdam, The Netherlands
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package nl.junglecomputing.common_source_identification.relaxed;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Random;
+
+import org.jocl.Pointer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ibis.cashmere.constellation.Buffer;
+import ibis.cashmere.constellation.Cashmere;
+import ibis.cashmere.constellation.CashmereNotAvailable;
+import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.LibFuncNotAvailable;
+import ibis.constellation.ActivityIdentifier;
+import ibis.constellation.Constellation;
+import ibis.constellation.Event;
+import ibis.constellation.NoSuitableExecutorException;
+import ibis.constellation.Timer;
+import ibis.constellation.util.ByteBufferCache;
+import nl.junglecomputing.common_source_identification.cpu.Correlation;
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.dedicated_activities.NPBuffer;
+import nl.junglecomputing.common_source_identification.device_mem_cache.LockToken;
+import nl.junglecomputing.common_source_identification.device_mem_cache.NoisePatternCache;
+import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
+import nl.junglecomputing.common_source_identification.mc.ComputeCorrelation;
+import nl.junglecomputing.common_source_identification.mc.ComputeFrequencyDomain;
+import nl.junglecomputing.common_source_identification.mc.ComputeNoisePattern;
+import nl.junglecomputing.common_source_identification.mc.ExecutorData;
+
+/*
+ * LeafCorelationsActivity is the leaf node in the tree of CorrelationsActivities and performs the actual correlations.  This
+ * activity will always execute on the node where it was created.  An instace of this class produces noise patterns, noise
+ * patterns in the frequency domain, and the correlations that will be sent to its parent.
+ *
+ * The LeafCorelationsActivity will produce correlations for an i-range and j-range noise patterns.  The size of those ranges are
+ * determined by the Activity that created this one and is based on a threshold based on the amount of memory on the device and
+ * the number of Executors.
+ *
+ * To produce correlations, the noise patterns have to be locked with read locks, if a thread does not get a read lock, but a
+ * write lock, it means that the noise pattern has to be produced, which is also done by this class.
+ */
+class LeafCorrelationsActivity extends CorrelationsActivity {
+
+    private static final long serialVersionUID = 1L;
+
+    static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.LeafCorrelationsActivity");
+
+    static boolean FLIPPED = true;
+    static boolean REGULAR = false;
+
+    // keeping track of the noise patterns
+    private transient Pointer[] noisePatternsXFreq;
+    private transient Pointer[] noisePatternsYFreq;
+
+    // The data that belongs to the executor that executes this activity.
+    private transient ExecutorData data;
+
+    // keeping track of the time
+    private transient int event;
+    private transient Timer timer;
+
+    // debugging, keeps track of the amount of the total LeafCorrelationsActivities that are in flight on the node.
+    static int inFlight = 0;
+
+    private transient Device device;
+
+    private transient Event messageI = null;
+    private transient Event messageJ = null;
+
+    private transient Random random;
+
+    private transient FetchPatternActivity fI;
+
+    private transient FetchPatternActivity fJ;
+
+    private transient String executor;
+
+    /*
+     * Create a LeafCorrelationsActivity with the i and j range indicated by indicesI and indicesJ.
+     */
+    LeafCorrelationsActivity(ActivityIdentifier parent, ActivityIdentifier progressActivityID, int[] indicesI, int[] indicesJ,
+            int hostI, int hostJ, File[] filesI, File[] filesJ, int h, int w, int level, ActivityIdentifier[][] providers) {
+
+        // made node2 node1 always equal, to trigger the fact that this should be local.
+        super(true, parent, progressActivityID, indicesI, indicesJ, hostI, hostJ, filesI, filesJ, h, w, level, providers);
+        logger.debug("Creating LeafCorrelation, node1 = {}, node2 = {}, size1 = {}, size2 = {}", node1, node2, indicesI.length,
+                indicesJ.length);
+    }
+
     @Override
     public void cleanup(Constellation cons) {
         if (logger.isDebugEnabled()) {
