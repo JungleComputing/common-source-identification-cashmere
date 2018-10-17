@@ -206,7 +206,9 @@ public class TreeCorrelationsActivity extends CorrelationsActivity {
         int nrActivitiesJ = indicesJ.length;
 
         CorrelationsActivity activity;
-        if (nrActivitiesI + nrActivitiesJ <= CommonSourceIdentification.thresholdDC) {
+        int threshold = CommonSourceIdentification.thresholdDC / 2;
+        if (nrActivitiesI <= threshold && nrActivitiesJ <= threshold) {
+
             activity = new LeafCorrelationsActivity(identifier(), progressActivityID, indicesI, indicesJ, node1, node2, filesI,
                     filesJ, h, w, node1 == node2 ? 100 : level + 1, providers);
         } else {
