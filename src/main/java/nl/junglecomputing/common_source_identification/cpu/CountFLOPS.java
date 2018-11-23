@@ -16,8 +16,8 @@
 
 package nl.junglecomputing.common_source_identification.cpu;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 public class CountFLOPS {
 
@@ -30,9 +30,12 @@ public class CountFLOPS {
     static Map<ImageDims, Long> createFFTFlopsMap(boolean forward) {
         HashMap<ImageDims, Long> map = new HashMap<ImageDims, Long>();
         if (forward) {
-            map.put(new ImageDims(3000, 4000), 2351000000l);
+            map.put(new ImageDims(3000, 4000), 2852200000l);
+            map.put(new ImageDims(2736, 3648), 1798947504l);
         } else {
-            map.put(new ImageDims(3000, 4000), 2352800000l);
+            map.put(new ImageDims(3000, 4000), 2852200000l);
+            map.put(new ImageDims(2736, 3648), 1798947504l);
+
         }
         return map;
     }
@@ -68,8 +71,12 @@ public class CountFLOPS {
 
     static long nrFlops(int h, int w, int n, int nrNoisePatternsComputed, int nrNoisePatternFreqTransforms) {
         ImageDims imageDims = new ImageDims(h, w);
-        long flopsForwardFFT = FFT_FLOPS_FORWARD.get(imageDims);
-        long flopsBackwardFFT = FFT_FLOPS_BACKWARD.get(imageDims);
+        Long flopsForwardFFT = FFT_FLOPS_FORWARD.get(imageDims);
+        Long flopsBackwardFFT = FFT_FLOPS_BACKWARD.get(imageDims);
+
+        if (flopsForwardFFT == null || flopsBackwardFFT == null) {
+            return 0;
+        }
 
         long flopsPRNU = nrFlopsPRNU(h, w, flopsForwardFFT, flopsBackwardFFT);
         long flopsPCELinear = nrFlopsPCELinear(h, w, flopsForwardFFT, flopsBackwardFFT);
@@ -79,7 +86,8 @@ public class CountFLOPS {
                 + ((n * (n - 1)) / 2) * flopsPCEQuadratic;
     }
 
-    public static void printGFLOPS(int h, int w, int n, int nrNoisePatternsComputed, int nrNoisePatternFreqTransforms, long timeNanos) {
+    public static void printGFLOPS(int h, int w, int n, int nrNoisePatternsComputed, int nrNoisePatternFreqTransforms,
+            long timeNanos) {
         long nrFlopsAchieved = nrFlops(h, w, n, nrNoisePatternsComputed, nrNoisePatternFreqTransforms);
         long nrFlopsActual = nrFlops(h, w, n, n, n);
         double timeSeconds = timeNanos / 1e9;

@@ -25,8 +25,8 @@ public class Correlation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    int i;
-    int j;
+    public int i;
+    public int j;
     public double coefficient;
 
     public Correlation(int i, int j) {
@@ -35,6 +35,7 @@ public class Correlation implements Serializable {
         this.coefficient = -1.0;
     }
 
+    @Override
     public String toString() {
         return String.format("Correlation: (%d,%d): %f\n", i, j, coefficient);
     }

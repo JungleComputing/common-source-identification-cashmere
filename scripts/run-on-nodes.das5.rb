@@ -11,7 +11,6 @@ command = "prun -np #{$nrNodes} " +
     "#{$extra_params.join} " + 
     "CLASSPATH=#{$classpath}:$CLASSPATH $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR/bin/run-script " +
     "-XX:MaxDirectMemorySize=50G " +
-    "-Dibis.implementation=smartsockets " +
     "-Dibis.server.address=fs0.das5.cs.vu.nl " +
     "-Dibis.constellation.closed=true " +
     "-Dibis.pool.size=#{$nrNodes} -Dibis.server.port=#{$port} " +

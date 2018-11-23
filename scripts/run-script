@@ -12,7 +12,13 @@ X${PRUN_CPU_RANK}X$NHOSTS)
     ;;
 esac
 
+case X${PRUN_CPU_RANK} in
+X)  PRUN_CPU_RANK=`hostname`
+    ;;
+esac
+
 echo I am `hostname`
+CUDA_VISIBLE_DEVICES=0,1,2
 
 # export LD_PRELOAD=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/amd64/libjsig.so
 
@@ -31,10 +37,9 @@ java -classpath $CLASSPATH \
      -Djava.rmi.server.hostname=localhost \
      -Dcom.sun.management.jmxremote.rmi.port=14124 \
      -Dcom.sun.management.jmxremote.local.only=false \
-     -Djava.io.tmpdir=/local/$USER -Dibis.implementation=smartsockets \
+     -Djava.io.tmpdir=/local/$USER \
      -Dibis.constellation.queue.limit=0 \
      -Dibis.constellation.profile=true \
-     -Dibis.constellation.stealing=mw \
      -Dibis.constellation.profile.output=gantt \
      -Dibis.constellation.remotesteal.throttle=true \
      -Dlog4j.configuration=file:"$COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR"/log4j.properties \

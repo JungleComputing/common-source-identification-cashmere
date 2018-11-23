@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * cache keeps track of the amount of available slots in the memory with a list of memoryIndices.  There is also a Usage object
  * that implements the eviction strategy.
  */
-class Cache<T> {
+public class Cache<T> {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification.Cache");
 
@@ -41,13 +41,13 @@ class Cache<T> {
     private Usage usage;
     private T[] memory;
 
-    Cache(String description) {
+    public Cache(String description) {
         memoryToItemIndices = new ConcurrentHashMap<Integer, Integer>();
         usage = new Usage(10, description);
     }
 
     // Set the memory and inform Usage.
-    void setMemory(T[] memory) {
+    public void setMemory(T[] memory) {
         this.memory = memory;
         usage.setMaxNrItems(memory.length);
         availableMemoryIndices = new ArrayList<Integer>(memory.length);
@@ -57,33 +57,33 @@ class Cache<T> {
     }
 
     // Get an item from the cache based on an itemIndex.
-    T get(int index) {
+    public T get(int index) {
         return memory[memoryToItemIndices.get(index)];
     }
 
     // mark an item as locked
-    void markLocked(int index) {
+    public void markLocked(int index) {
         usage.markLocked(index);
     }
 
-    int findEvictionCandidate() {
+    public int findEvictionCandidate() {
         return usage.findEvictionCandidate();
     }
 
     // get an element from the cache that is available
-    T getAvailableElement(int index) {
+    public T getAvailableElement(int index) {
         int indexMemory = availableMemoryIndices.remove(0);
         memoryToItemIndices.put(index, indexMemory);
         return memory[indexMemory];
     }
 
     // mark a locked item to being a victim
-    void markFromLockedToVictim(int index) {
+    public void markFromLockedToVictim(int index) {
         usage.markFromLockedToVictim(index);
     }
 
     // evict an item, add it to the available memory indices
-    T evict(int index) {
+    public T evict(int index) {
         usage.evict(index);
 
         int indexMemory;
@@ -94,17 +94,17 @@ class Cache<T> {
     }
 
     // whether item with index index is in the cache
-    boolean contains(int index) {
+    public boolean contains(int index) {
         return memoryToItemIndices.containsKey(index);
     }
 
     // retrieve an enumeration of all indices
-    synchronized Enumeration<Integer> indices() {
+    public synchronized Enumeration<Integer> indices() {
         return memoryToItemIndices.keys();
     }
 
     // clear the cache
-    synchronized void clear() {
+    public synchronized void clear() {
         memoryToItemIndices.clear();
         usage.initialize();
     }

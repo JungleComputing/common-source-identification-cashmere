@@ -42,25 +42,21 @@ import ibis.constellation.StealPool;
 import ibis.constellation.StealStrategy;
 import ibis.constellation.Timer;
 import ibis.constellation.util.SingleEventCollector;
-
 import nl.junglecomputing.common_source_identification.Version;
-
-import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
-import nl.junglecomputing.common_source_identification.cpu.CorrelationMatrix;
-import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
-import nl.junglecomputing.common_source_identification.cpu.IO;
-import nl.junglecomputing.common_source_identification.cpu.CountFLOPS;
-import nl.junglecomputing.common_source_identification.cpu.ImageDims;
-import nl.junglecomputing.common_source_identification.cpu.ProgressActivity;
 import nl.junglecomputing.common_source_identification.cpu.ConfigurationFactory;
-import nl.junglecomputing.common_source_identification.cpu.Linkage;
+import nl.junglecomputing.common_source_identification.cpu.CorrelationMatrix;
+import nl.junglecomputing.common_source_identification.cpu.CountFLOPS;
+import nl.junglecomputing.common_source_identification.cpu.IO;
+import nl.junglecomputing.common_source_identification.cpu.ImageDims;
+import nl.junglecomputing.common_source_identification.cpu.JobSubmission;
 import nl.junglecomputing.common_source_identification.cpu.Link;
+import nl.junglecomputing.common_source_identification.cpu.Linkage;
+import nl.junglecomputing.common_source_identification.cpu.NodeInformation;
+import nl.junglecomputing.common_source_identification.cpu.ProgressActivity;
 
-@SuppressWarnings("restriction")
 public class CommonSourceIdentification {
 
     static Logger logger = LoggerFactory.getLogger("CommonSourceIdentification");
-
 
     static ConstellationConfiguration[] getConfigurations() {
         int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
@@ -76,8 +72,8 @@ public class CommonSourceIdentification {
         configurationFactory.createConfigurations(1, stealPool, stealPool, new Context(ProgressActivity.LABEL),
                 StealStrategy.BIGGEST, StealStrategy.SMALLEST);
         // ... and one thread for the singleeventcollector.
-        configurationFactory.createConfigurations(1, stealPool, stealPool, new Context(NodeInformation.LABEL), StealStrategy.BIGGEST,
-                StealStrategy.SMALLEST);
+        configurationFactory.createConfigurations(1, stealPool, stealPool, new Context(NodeInformation.LABEL),
+                StealStrategy.BIGGEST, StealStrategy.SMALLEST);
 
         return configurationFactory.getConfigurations();
     }
@@ -95,7 +91,6 @@ public class CommonSourceIdentification {
         return (CorrelationMatrix) sec.waitForEvent().getData();
     }
 
-
     public static void main(String[] args) throws NoSuitableExecutorException {
         // every node in the cluster does the following:
         NodeInformation.setHostName();
@@ -112,7 +107,7 @@ public class CommonSourceIdentification {
         String nameImageDir = "";
 
         for (int i = 0; i < args.length; i++) {
-	    if (args[i].equals("-image-dir")) {
+            if (args[i].equals("-image-dir")) {
                 i++;
                 nameImageDir = args[i];
             } else if (args[i].equals("-mc")) {
@@ -130,30 +125,30 @@ public class CommonSourceIdentification {
             Cashmere.initialize(getConfigurations());
             Constellation constellation = Cashmere.getConstellation();
 
-	    int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
+            int nrLocalExecutors = NodeInformation.getNrExecutors("cashmere.nLocalExecutors", 2);
 
-	    Device device = Cashmere.getDevice("grayscaleKernel");
-	    // we set the number of blocks for reduction operations to the
-	    // following value
-	    int nrBlocksForReduce = 1024;
+            Device device = Cashmere.getDevice("grayscaleKernel");
+            // we set the number of blocks for reduction operations to the
+            // following value
+            int nrBlocksForReduce = 1024;
 
-	    // we initialize for all nrLocalExecutors executors private data
-	    ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce);
+            // we initialize for all nrLocalExecutors executors private data
+            ExecutorData.initialize(nrLocalExecutors, device, height, width, nrBlocksForReduce, true);
 
-	    logger.debug("{} parallel activities", nrLocalExecutors);
+            logger.debug("{} parallel activities", nrLocalExecutors);
 
-	    // we initialize the fft library for the many-core device
-	    Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {
-			int err = FFT.initializeFFT(context, queue, height, width);
-			if (err != 0) {
-			    throw new CLException(CL.stringFor_errorCode(err));
-			}
-		    }, () -> {
-			int err = FFT.deinitializeFFT();
-			if (err != 0) {
-			    throw new CLException(CL.stringFor_errorCode(err));
-			}
-		    });
+            // we initialize the fft library for the many-core device
+            Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {
+                int err = FFT.initializeFFT(context, queue, height, width);
+                if (err != 0) {
+                    throw new CLException(CL.stringFor_errorCode(err));
+                }
+            }, () -> {
+                int err = FFT.deinitializeFFT();
+                if (err != 0) {
+                    throw new CLException(CL.stringFor_errorCode(err));
+                }
+            });
             Cashmere.initializeLibraries();
             constellation.activate();
 
@@ -161,7 +156,8 @@ public class CommonSourceIdentification {
                 logger.info("CommonSourceIdentification, running with number of nodes: " + nrNodes);
                 logger.info("image-dir: " + nameImageDir);
 
-                logger.info("I am the master, my hostname is: {}, pid: {}", NodeInformation.HOSTNAME, NodeInformation.getProcessId("<PID>"));
+                logger.info("I am the master, my hostname is: {}, pid: {}", NodeInformation.HOSTNAME,
+                        NodeInformation.getProcessId("<PID>"));
 
                 Timer timer = Cashmere.getOverallTimer();
 
@@ -183,12 +179,13 @@ public class CommonSourceIdentification {
 
                 long timeNanos = (long) (timer.totalTimeVal() * 1000);
                 System.out.println("Common source identification time: " + ProgressActivity.format(Duration.ofNanos(timeNanos)));
-		
+
                 int n = imageFiles.length;
                 int nrNoisePatternsComputed = (n * (n - 1)) / 2;
                 int nrNoisePatternsTransformed = (n * (n - 1)) / 2;
 
-                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed, timeNanos);
+                CountFLOPS.printGFLOPS(height, width, imageFiles.length, nrNoisePatternsComputed, nrNoisePatternsTransformed,
+                        timeNanos);
 
                 // we wait for the progress activity to stop
                 sec.waitForEvent();
@@ -204,7 +201,8 @@ public class CommonSourceIdentification {
             } else {
                 // we are a worker
                 if (logger.isDebugEnabled()) {
-                    logger.debug("I am a worker, my hostname is: {}, my pid is: {}", NodeInformation.HOSTNAME, NodeInformation.getProcessId("<PID>"));
+                    logger.debug("I am a worker, my hostname is: {}, my pid is: {}", NodeInformation.HOSTNAME,
+                            NodeInformation.getProcessId("<PID>"));
                 }
             }
 
@@ -214,7 +212,7 @@ public class CommonSourceIdentification {
             Cashmere.done();
 
             // cleanup
-	    Cashmere.deinitializeLibraries();
+            Cashmere.deinitializeLibraries();
         } catch (IOException | ConstellationCreationException | CashmereNotAvailable e) {
             throw new Error(e);
         }

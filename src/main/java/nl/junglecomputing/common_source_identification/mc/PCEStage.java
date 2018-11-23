@@ -20,7 +20,6 @@ import org.jocl.Pointer;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_event;
 
-import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
@@ -30,7 +29,6 @@ import ibis.cashmere.constellation.LibFunc;
 import ibis.cashmere.constellation.LibFuncLaunch;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Timer;
-
 import nl.junglecomputing.common_source_identification.cpu.Stage;
 
 /*

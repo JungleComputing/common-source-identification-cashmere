@@ -20,10 +20,6 @@ import java.nio.ByteBuffer;
 
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
-import ibis.cashmere.constellation.Device;
-import ibis.cashmere.constellation.Kernel;
-import ibis.cashmere.constellation.KernelLaunch;
 import ibis.constellation.Timer;
 
 class ImageToGrayscaleStage extends Stage {

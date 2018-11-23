@@ -16,28 +16,28 @@
 
 package nl.junglecomputing.common_source_identification.main_mem_cache;
 
-class LockToken<T> {
+public class LockToken<T> {
     final int index;
     final int victim;
-    T availableElement;
+    public T availableElement;
 
     private final boolean writeLock;
 
-    LockToken(int index, boolean writeLock) {
+    public LockToken(int index, boolean writeLock) {
         this(index, -1, writeLock);
     }
 
-    LockToken(int index, int victim, boolean writeLock) {
+    public LockToken(int index, int victim, boolean writeLock) {
         this.index = index;
         this.victim = victim;
         this.writeLock = writeLock;
     }
 
-    boolean readLock() {
+    public boolean readLock() {
         return !writeLock;
     }
 
-    boolean writeLock() {
+    public boolean writeLock() {
         return writeLock;
     }
 }

@@ -19,13 +19,6 @@ package nl.junglecomputing.common_source_identification.cpu;
 import java.io.File;
 import java.io.IOException;
 
-import org.jocl.Pointer;
-
-import ibis.cashmere.constellation.Buffer;
-import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
-import ibis.cashmere.constellation.Device;
-import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.Activity;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
@@ -63,11 +56,11 @@ public class CorrelationsActivity extends Activity {
     public int initialize(Constellation constellation) {
         Correlation c = null;
         String executor = constellation.identifier().toString();
-	try {
-	    c = ComputeCorrelation.computeCorrelation(height, width, i, j, fi, fj, executor);
-	} catch (IOException e) {
-	    throw new Error(e);
-	}
+        try {
+            c = ComputeCorrelation.computeCorrelation(height, width, i, j, fi, fj, executor);
+        } catch (IOException e) {
+            throw new Error(e);
+        }
         constellation.send(new Event(identifier(), id, c));
         return FINISH;
     }

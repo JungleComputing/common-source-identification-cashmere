@@ -17,22 +17,21 @@
 package nl.junglecomputing.common_source_identification.main_mem_cache;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import sun.misc.VM;
 
 import ibis.constellation.util.MemorySizes;
+import sun.misc.VM;
 
+@SuppressWarnings("restriction")
 public class CacheConfig {
 
     static Logger logger = CommonSourceIdentification.logger;
-    
-    static int nrNoisePatternsForSpace(long space, long sizeNoisePattern) {
+
+    public static int nrNoisePatternsForSpace(long space, long sizeNoisePattern) {
         return (int) Math.floor(space / (double) sizeNoisePattern);
     }
 
-    static int getNrNoisePatternsMemory(int sizeNoisePattern, int spaceForGrayscale) {
-        long spaceForNoisePatterns = VM.maxDirectMemory() - spaceForGrayscale;
+    public static int getNrNoisePatternsMemory(int sizeNoisePattern, long memReservedForGrayscale) {
+        long spaceForNoisePatterns = VM.maxDirectMemory() - memReservedForGrayscale;
         int nrNoisePatterns = nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
 
         if (logger.isDebugEnabled()) {
@@ -50,7 +49,7 @@ public class CacheConfig {
             logger.debug("Size of noise pattern: " + MemorySizes.toStringBytes(sizeNoisePattern));
         }
 
-        int memReservedForGrayscale = height * width * 3 * nrThreads;
+        long memReservedForGrayscale = height * width * 3 * nrThreads;
         int nrNoisePatternsMemory = getNrNoisePatternsMemory(sizeNoisePattern, memReservedForGrayscale);
 
         NoisePatternCache.initialize(height, width, nrNoisePatternsMemory);

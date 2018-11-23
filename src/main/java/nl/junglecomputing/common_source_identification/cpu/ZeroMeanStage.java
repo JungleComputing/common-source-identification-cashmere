@@ -17,10 +17,6 @@
 package nl.junglecomputing.common_source_identification.cpu;
 
 import ibis.cashmere.constellation.Cashmere;
-import ibis.cashmere.constellation.CashmereNotAvailable;
-import ibis.cashmere.constellation.Device;
-import ibis.cashmere.constellation.Kernel;
-import ibis.cashmere.constellation.KernelLaunch;
 import ibis.constellation.Timer;
 
 /*

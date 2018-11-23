@@ -20,19 +20,34 @@ import ibis.constellation.NoSuitableExecutorException;
 
 public class CommonSourceIdentification {
 
-    public static final String USAGE = "Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu -mc -mainMemCache ]";
+    public static final String USAGE = "Usage: java CommonSourceIdentification -image-dir <image-dir> [ -cpu -mc -mainMemCache -deviceMemCache -remote-activities -dedicated-activities -relaxed -multipleGPUs ]";
 
     public static void main(String[] args) throws NoSuitableExecutorException {
         for (int i = 0; i < args.length; i++) {
-	    if (args[i].equals("-cpu")) {
-		nl.junglecomputing.common_source_identification.cpu.CommonSourceIdentification.main(args);
-		break;
-	    } else if (args[i].equals("-mc")) {
-		nl.junglecomputing.common_source_identification.mc.CommonSourceIdentification.main(args);
-		break;
+            if (args[i].equals("-cpu")) {
+                nl.junglecomputing.common_source_identification.cpu.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-mc")) {
+                nl.junglecomputing.common_source_identification.mc.CommonSourceIdentification.main(args);
+                break;
             } else if (args[i].equals("-mainMemCache")) {
-		nl.junglecomputing.common_source_identification.main_mem_cache.CommonSourceIdentification.main(args);
-		break;
+                nl.junglecomputing.common_source_identification.main_mem_cache.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-deviceMemCache")) {
+                nl.junglecomputing.common_source_identification.device_mem_cache.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-remote-activities")) {
+                nl.junglecomputing.common_source_identification.remote_activities.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-dedicated-activities")) {
+                nl.junglecomputing.common_source_identification.dedicated_activities.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-relaxed")) {
+                nl.junglecomputing.common_source_identification.relaxed.CommonSourceIdentification.main(args);
+                break;
+            } else if (args[i].equals("-multipleGPUs")) {
+                nl.junglecomputing.common_source_identification.multipleGPUs.CommonSourceIdentification.main(args);
+                break;
             } else {
                 throw new Error(USAGE);
             }
