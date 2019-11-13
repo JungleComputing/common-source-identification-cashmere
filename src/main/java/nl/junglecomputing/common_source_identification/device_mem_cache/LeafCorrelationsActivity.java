@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.jocl.Pointer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +27,7 @@ import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.Pointer;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;

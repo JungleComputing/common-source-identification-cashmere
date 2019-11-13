@@ -20,12 +20,12 @@ import java.util.Hashtable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.jocl.Pointer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.Pointer;
 import nl.junglecomputing.common_source_identification.main_mem_cache.Cache;
 import nl.junglecomputing.common_source_identification.main_mem_cache.LockException;
 

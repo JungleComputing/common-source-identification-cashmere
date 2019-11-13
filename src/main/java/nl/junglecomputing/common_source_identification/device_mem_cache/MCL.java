@@ -16,12 +16,11 @@
 
 package nl.junglecomputing.common_source_identification.device_mem_cache;
 
-import org.jocl.Pointer;
-
 import ibis.cashmere.constellation.Argument;
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.KernelLaunch;
+import ibis.cashmere.constellation.Pointer;
 
 class MCL {
 

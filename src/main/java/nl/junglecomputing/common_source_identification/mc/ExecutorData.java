@@ -20,11 +20,11 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-import org.jocl.Pointer;
-import org.jocl.Sizeof;
+import ibis.cashmere.constellation.Pointer;
 
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.Platform;
 import ibis.constellation.Constellation;
 
 /*
@@ -66,8 +66,8 @@ public class ExecutorData {
      * The amount of device memory that an executor thread needs.
      */
     public static long memoryForKernelExecutionThread(int h, int w, int nrBlocksForReduce, boolean freq) {
-        return h * w * Sizeof.cl_float * 6L + nrBlocksForReduce * Sizeof.cl_double + nrBlocksForReduce * Sizeof.cl_float
-                + (long) Sizeof.cl_int * 5 + h * w * 3 + (freq ? h * w * Sizeof.cl_float * 4L : 0);
+        return h * w * Platform.FLOAT_SIZE * 6L + nrBlocksForReduce * Platform.DOUBLE_SIZE + nrBlocksForReduce * Platform.FLOAT_SIZE
+                + (long) Platform.INT_SIZE * 5 + h * w * 3 + (freq ? h * w * Platform.FLOAT_SIZE * 4L : 0);
     }
 
     private Device device;
@@ -145,18 +145,18 @@ public class ExecutorData {
         this.device = device;
         this.nrBlocksForReduce = nrBlocksForReduce;
 
-        memHWFloat1 = device.allocate(h * w * Sizeof.cl_float);
+        memHWFloat1 = device.allocate(h * w * Platform.FLOAT_SIZE);
 
-        memHWComplex1 = device.allocate(h * w * 2 * Sizeof.cl_float);
-        memHWComplex2 = device.allocate(h * w * 2 * Sizeof.cl_float);
+        memHWComplex1 = device.allocate(h * w * 2 * Platform.FLOAT_SIZE);
+        memHWComplex2 = device.allocate(h * w * 2 * Platform.FLOAT_SIZE);
 
-        memDoubleNrBlocksForReduce = device.allocate(nrBlocksForReduce * Sizeof.cl_double);
-        memIntNrBlocksForReduce = device.allocate(nrBlocksForReduce * Sizeof.cl_float);
+        memDoubleNrBlocksForReduce = device.allocate(nrBlocksForReduce * Platform.DOUBLE_SIZE);
+        memIntNrBlocksForReduce = device.allocate(nrBlocksForReduce * Platform.FLOAT_SIZE);
 
-        memInt1 = device.allocate(Sizeof.cl_int);
-        memFloat1 = device.allocate(Sizeof.cl_float);
-        memFloat2 = device.allocate(Sizeof.cl_float);
-        memDouble1 = device.allocate(Sizeof.cl_double);
+        memInt1 = device.allocate(Platform.INT_SIZE);
+        memFloat1 = device.allocate(Platform.FLOAT_SIZE);
+        memFloat2 = device.allocate(Platform.FLOAT_SIZE);
+        memDouble1 = device.allocate(Platform.DOUBLE_SIZE);
 
         this.bufferHWRGB = new Buffer(h * w * 3);
 
@@ -174,12 +174,12 @@ public class ExecutorData {
         // usesdata from LeafCorrelationsActivity
 
         // launchToComplex(AndFlip)
-        noisePattern = device.allocate(h * w * Sizeof.cl_float);
+        noisePattern = device.allocate(h * w * Platform.FLOAT_SIZE);
 
         // Only for non-freq-domain-caching versions ...
         if (allocateFreq) {
-            noisePatternFreq1 = device.allocate(h * w * 2 * Sizeof.cl_float);
-            noisePatternFreq2 = device.allocate(h * w * 2 * Sizeof.cl_float);
+            noisePatternFreq1 = device.allocate(h * w * 2 * Platform.FLOAT_SIZE);
+            noisePatternFreq2 = device.allocate(h * w * 2 * Platform.FLOAT_SIZE);
         }
 
         // uses data from LeafCorrelationsActivity

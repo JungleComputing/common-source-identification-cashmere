@@ -16,12 +16,11 @@
 
 package nl.junglecomputing.common_source_identification.mc;
 
-import org.jocl.cl_command_queue;
-import org.jocl.cl_event;
-
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
+import ibis.cashmere.constellation.CommandStream;
 import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.DeviceEvent;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.cashmere.constellation.LibFunc;
@@ -63,8 +62,8 @@ public class WienerStage extends Stage {
         // forward fft
         LibFunc fft = Cashmere.getLibFunc("fft", device);
         LibFuncLaunch fftLaunch = fft.createLaunch();
-        fftLaunch.launch((cl_command_queue queue, int num_events_in_wait_list, cl_event[] event_wait_list, cl_event event) -> FFT
-                .performFFT(queue, h, w, data.complex, data.temp2, true, num_events_in_wait_list, event_wait_list, event));
+        fftLaunch.launch((CommandStream queue, DeviceEvent[] event_wait_list) -> FFT
+                .performFFT(queue, h, w, data.complex, data.temp2, true, event_wait_list));
 
         Kernel sqMKernel = Cashmere.getKernel("computeSquaredMagnitudesKernel", device);
         KernelLaunch sqKL = sqMKernel.createLaunch();
@@ -86,8 +85,8 @@ public class WienerStage extends Stage {
 
         // inverse Fourier transform
         LibFuncLaunch ifftLaunch = fft.createLaunch();
-        ifftLaunch.launch((cl_command_queue queue, int numEventsWaitList, cl_event[] event_wait_list, cl_event event) -> FFT
-                .performFFT(queue, h, w, data.complex, data.temp2, false, numEventsWaitList, event_wait_list, event));
+        ifftLaunch.launch((CommandStream queue, DeviceEvent[] event_wait_list) -> FFT
+                .performFFT(queue, h, w, data.complex, data.temp2, false, event_wait_list));
 
         // convert values to real and return result
 

@@ -22,15 +22,12 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jocl.CL;
-import org.jocl.CLException;
-import org.jocl.cl_command_queue;
-import org.jocl.cl_context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
+import ibis.cashmere.constellation.CommandStream;
 import ibis.cashmere.constellation.Device;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
@@ -138,16 +135,10 @@ public class CommonSourceIdentification {
             logger.debug("{} parallel activities", nrLocalExecutors);
 
             // we initialize the fft library for the many-core device
-            Cashmere.setupLibrary("fft", (cl_context context, cl_command_queue queue) -> {
-                int err = FFT.initializeFFT(context, queue, height, width);
-                if (err != 0) {
-                    throw new CLException(CL.stringFor_errorCode(err));
-                }
+            Cashmere.setupLibrary("fft", (Device d, CommandStream queue) -> {
+                FFT.initializeFFT(d, queue, height, width);
             }, () -> {
-                int err = FFT.deinitializeFFT();
-                if (err != 0) {
-                    throw new CLException(CL.stringFor_errorCode(err));
-                }
+                FFT.deinitializeFFT();
             });
             Cashmere.initializeLibraries();
             constellation.activate();

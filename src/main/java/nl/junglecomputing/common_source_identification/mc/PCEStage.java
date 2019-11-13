@@ -16,13 +16,12 @@
 
 package nl.junglecomputing.common_source_identification.mc;
 
-import org.jocl.Pointer;
-import org.jocl.cl_command_queue;
-import org.jocl.cl_event;
-
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
+import ibis.cashmere.constellation.CommandStream;
 import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.DeviceEvent;
+import ibis.cashmere.constellation.Pointer;
 import ibis.cashmere.constellation.Kernel;
 import ibis.cashmere.constellation.KernelLaunch;
 import ibis.cashmere.constellation.LibFunc;
@@ -76,9 +75,8 @@ class PCEStage extends Stage {
         KernelLaunch sdKL = sdKernel.createLaunch();
         MCL.launchCrossCorrelateKernel(ccKL, h * w, data.crossCorrelation, false, x, false, y, false); // 3.6ms
 
-        ifftLaunch.launch((cl_command_queue queue, int num_events_in_wait_list, cl_event[] event_wait_list, cl_event event) -> FFT
-                .performFFT(queue, h, w, data.crossCorrelation, data.temp, false, num_events_in_wait_list, event_wait_list,
-                        event));
+        ifftLaunch.launch((CommandStream queue, DeviceEvent[] event_wait_list) -> FFT
+                .performFFT(queue, h, w, data.crossCorrelation, data.temp, false, event_wait_list));
 
         MCL.launchFindPeakKernel(fpKL, nrBlocksFindPeak, h * w, data.peak, false, data.tempPeaks, false, data.indicesPeak, false,
                 data.crossCorrelation, false); // 5.2 ms

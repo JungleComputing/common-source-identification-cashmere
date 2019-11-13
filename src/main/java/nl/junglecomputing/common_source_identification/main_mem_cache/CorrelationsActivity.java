@@ -20,7 +20,7 @@ package nl.junglecomputing.common_source_identification.main_mem_cache;
 import java.io.File;
 import java.io.IOException;
 
-import org.jocl.Pointer;
+import ibis.cashmere.constellation.Pointer;
 
 import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;

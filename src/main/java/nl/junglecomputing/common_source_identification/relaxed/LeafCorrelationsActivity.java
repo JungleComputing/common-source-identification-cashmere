@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.jocl.Pointer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +29,7 @@ import ibis.cashmere.constellation.Buffer;
 import ibis.cashmere.constellation.Cashmere;
 import ibis.cashmere.constellation.CashmereNotAvailable;
 import ibis.cashmere.constellation.Device;
+import ibis.cashmere.constellation.Pointer;
 import ibis.cashmere.constellation.LibFuncNotAvailable;
 import ibis.constellation.ActivityIdentifier;
 import ibis.constellation.Constellation;
