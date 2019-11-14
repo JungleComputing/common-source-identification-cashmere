@@ -19,6 +19,7 @@ repositories {
 jar {
     from('src/main/java') {
       include '**/*.cl'
+      include '**/*.cu'
    }
 }
 
