@@ -19,16 +19,16 @@ then
     config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=smartsockets"
 elif echo "$@" | grep -q -- "-remote-activities"
 then
-    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=ib"
+    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=smartsockets"
 elif echo "$@" | grep -q -- "-dedicated-activities"
 then
-    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=ib"
+    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=smartsockets"
 elif echo "$@" | grep -q -- "-relaxed"
 then
-    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=ib"
+    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=smartsockets"
 elif echo "$@" | grep -q -- "-multipleGPUs"
 then
-    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=ib"
+    config_args="-Dcashmere.nLocalExecutors=4,-Xmx5G,-Dibis.implementation=smartsockets"
 else
     echo "Need parameter -cpu, -mc, -mainMemCache, -deviceMemCache, -remote-activities, -dedicated-activities, relaxed, or -multipleGPUs"
     exit 1

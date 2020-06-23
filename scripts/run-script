@@ -18,9 +18,12 @@ X)  PRUN_CPU_RANK=`hostname`
 esac
 
 echo I am `hostname`
-CUDA_VISIBLE_DEVICES=0,1,2
-
-# export LD_PRELOAD=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.75.x86_64/jre/lib/amd64/libjsig.so
+if `echo "$@" | grep -q multiple`
+then
+    CUDA_VISIBLE_DEVICES=0,1,2
+else
+    CUDA_VISIBLE_DEVICES=0
+fi
 
 mkdir -p /local/$USER
 rm -rf /local/$USER/*.so
@@ -45,5 +48,5 @@ java -classpath $CLASSPATH \
      -Dibis.constellation.remotesteal.throttle=true \
      -Dlog4j.configuration=file:"$COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR"/log4j.properties \
      -Dcashmere.asyncReads=true \
-     # -Dcashmere.platform=Cuda \
+     -Dcashmere.platform=opencl \
       "$@" 2>&1 | tee out.${PRUN_CPU_RANK}

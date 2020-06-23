@@ -1,0 +1,84 @@
+Ibis server running on 130.37.199.8-30127/172.29.28.0/10.149.0.254/10.148.255.1/10.141.255.254-30127~ceriel+22
+List of Services:
+    Central Registry service on virtual port 302
+    Management service on virtual port 304
+    Bootstrap service on virtual port 303
+Known hubs now: 130.37.199.8-30127/172.29.28.0/10.149.0.254/10.148.255.1/10.141.255.254-30127~ceriel+22
+21:21:23 Central Registry: creating new pool: "das5.18861"
+21:21:23 Central Registry: (Ibis 0, location node004@cm@cluster) joined pool "das5.18861" now 1 members
+21:21:23 Central Registry: pool "das5.18861" now closed
+21:21:23 Central Registry: (Ibis 0, location node004@cm@cluster) won election "Constellation Master" in pool "das5.18861"
+21:21:23 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$stealpool" in pool "das5.18861"
+21:21:23 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.18861"
+22:23:06 Central Registry: pool "das5.18861" now terminated
+22:23:10 Central Registry: (Ibis 0, location node004@cm@cluster) left pool "das5.18861" now 0 members
+22:23:10 Central Registry: pool "das5.18861" ended
+22:43:24 Central Registry: creating new pool: "das5.13134"
+22:43:24 Central Registry: (Ibis 0, location node004@cm@cluster) joined pool "das5.13134" now 1 members
+22:43:24 Central Registry: pool "das5.13134" now closed
+22:43:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "Constellation Master" in pool "das5.13134"
+22:43:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$stealpool" in pool "das5.13134"
+22:43:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.13134"
+22:43:30 Central Registry: pool "das5.13134" now terminated
+22:43:30 Central Registry: (Ibis 0, location node004@cm@cluster) left pool "das5.13134" now 0 members
+22:43:30 Central Registry: pool "das5.13134" ended
+22:46:24 Central Registry: creating new pool: "das5.20776"
+22:46:24 Central Registry: (Ibis 0, location node004@cm@cluster) joined pool "das5.20776" now 1 members
+22:46:24 Central Registry: pool "das5.20776" now closed
+22:46:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "Constellation Master" in pool "das5.20776"
+22:46:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$stealpool" in pool "das5.20776"
+22:46:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.20776"
+22:46:29 Central Registry: pool "das5.20776" now terminated
+22:46:29 Central Registry: (Ibis 0, location node004@cm@cluster) left pool "das5.20776" now 0 members
+22:46:29 Central Registry: pool "das5.20776" ended
+22:51:54 Central Registry: creating new pool: "das5.32389"
+22:51:54 Central Registry: (Ibis 0, location node004@cm@cluster) joined pool "das5.32389" now 1 members
+22:51:54 Central Registry: pool "das5.32389" now closed
+22:51:54 Central Registry: (Ibis 0, location node004@cm@cluster) won election "Constellation Master" in pool "das5.32389"
+22:51:54 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$stealpool" in pool "das5.32389"
+22:51:54 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.32389"
+22:52:06 Central Registry: pool "das5.32389" now terminated
+22:52:06 Central Registry: (Ibis 0, location node004@cm@cluster) left pool "das5.32389" now 0 members
+22:52:06 Central Registry: pool "das5.32389" ended
+22:57:24 Central Registry: creating new pool: "das5.13523"
+22:57:24 Central Registry: (Ibis 0, location node004@cm@cluster) joined pool "das5.13523" now 1 members
+22:57:24 Central Registry: pool "das5.13523" now closed
+22:57:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "Constellation Master" in pool "das5.13523"
+22:57:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$stealpool" in pool "das5.13523"
+22:57:24 Central Registry: (Ibis 0, location node004@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.13523"
+00:19:38 Central Registry: pool "das5.13523" now terminated
+00:19:42 Central Registry: (Ibis 0, location node004@cm@cluster) left pool "das5.13523" now 0 members
+00:19:42 Central Registry: pool "das5.13523" ended
+12:51:20 Central Registry: creating new pool: "das5.16615"
+12:51:20 Central Registry: (Ibis 0, location node024@cm@cluster) joined pool "das5.16615" now 1 members
+12:51:20 Central Registry: pool "das5.16615" now closed
+12:51:20 Central Registry: (Ibis 0, location node024@cm@cluster) won election "Constellation Master" in pool "das5.16615"
+12:51:20 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$LOCAL--2076147372-1" in pool "das5.16615"
+12:51:20 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$GLOBAL-0" in pool "das5.16615"
+12:51:20 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$LOCAL--2076147372-0" in pool "das5.16615"
+12:51:20 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.16615"
+13:00:36,736 ERROR [event pusher thread] ibis.ipl.registry.central.server.Pool - cannot reach (Ibis 0, location node024@cm@cluster)@T6 to push events to
+13:01:55,839 ERROR [pool pinger thread] ibis.ipl.registry.central.server.Pool - (Ibis 0, location node024@cm@cluster) died in pool "das5.16615" now 0 members
+13:01:55 Central Registry: pool das5.16615 ended
+13:09:39 Central Registry: creating new pool: "das5.27059"
+13:09:39 Central Registry: (Ibis 0, location node024@cm@cluster) joined pool "das5.27059" now 1 members
+13:09:39 Central Registry: pool "das5.27059" now closed
+13:09:39 Central Registry: (Ibis 0, location node024@cm@cluster) won election "Constellation Master" in pool "das5.27059"
+13:09:39 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$LOCAL--1151780260-1" in pool "das5.27059"
+13:09:39 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$GLOBAL-0" in pool "das5.27059"
+13:09:39 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$LOCAL--1151780260-0" in pool "das5.27059"
+13:09:39 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.27059"
+13:11:05 Central Registry: pool "das5.27059" now terminated
+13:11:05 Central Registry: (Ibis 0, location node024@cm@cluster) left pool "das5.27059" now 0 members
+13:11:05 Central Registry: pool "das5.27059" ended
+13:12:25 Central Registry: creating new pool: "das5.1642"
+13:12:25 Central Registry: (Ibis 0, location node024@cm@cluster) joined pool "das5.1642" now 1 members
+13:12:25 Central Registry: pool "das5.1642" now closed
+13:12:25 Central Registry: (Ibis 0, location node024@cm@cluster) won election "Constellation Master" in pool "das5.1642"
+13:12:25 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$LOCAL-697239025-1" in pool "das5.1642"
+13:12:25 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$GLOBAL-0" in pool "das5.1642"
+13:12:25 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$LOCAL-697239025-0" in pool "das5.1642"
+13:12:25 Central Registry: (Ibis 0, location node024@cm@cluster) won election "STEALPOOL$WORLD" in pool "das5.1642"
+13:13:53 Central Registry: pool "das5.1642" now terminated
+13:13:53 Central Registry: (Ibis 0, location node024@cm@cluster) left pool "das5.1642" now 0 members
+13:13:53 Central Registry: pool "das5.1642" ended
