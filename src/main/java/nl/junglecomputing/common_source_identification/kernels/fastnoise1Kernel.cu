@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-#define EPS (1.0)
+#define EPS (1.0f)
 
 
 
@@ -44,7 +44,7 @@ __global__ void fastnoise1Kernel(const int h, const int w, float* dxsdys, const 
             if (i == 0) dy = input[j + (i + 1) * (1 * w)] - input[j + i * (1 * w)];
             else if (i == h - 1) dy = input[j + i * (1 * w)] - input[j + (i - 1) * (1 * w)];
             else dy = 0.5 * (input[j + (i + 1) * (1 * w)] - input[j + (i - 1) * (1 * w)]);
-            const float norm = sqrt(dx * dx + dy * dy);
+            const float norm = sqrtf(dx * dx + dy * dy);
             const float scale = 1.0 / (EPS + norm);
             dxsdys[j + 0 * (1 * h * w) + i * (1 * w)] = dx * scale;
             dxsdys[j + 1 * (1 * h * w) + i * (1 * w)] = dy * scale;
