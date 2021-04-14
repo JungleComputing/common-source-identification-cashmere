@@ -58,7 +58,6 @@ public class GetMaxDirectMem {
         if (retval <= 0) {
             retval = Runtime.getRuntime().maxMemory();
         }
-        System.out.println("maxDirectMem = " + retval);
         return retval;
     }
 }
