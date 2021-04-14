@@ -6,14 +6,14 @@ plugins {
 dependencies {
     implementation 'org.slf4j:slf4j-api:1.7.21'
     implementation 'org.slf4j:slf4j-log4j12:1.7.21'
-    implementation 'nl.junglecomputing.cashmere:cashmere:0.4-SNAPSHOT'
-    implementation 'nl.junglecomputing.cashmere:common-source-identification-cashmere-native:1.2-SNAPSHOT'
+    implementation 'nl.junglecomputing.cashmere:cashmere:0.4'
+    implementation 'nl.junglecomputing.cashmere:common-source-identification-cashmere-native:1.2'
     implementation 'edu.emory.mathcs:JTransforms:2.4'
 }
 
 repositories {
-    jcenter()
     mavenLocal()
+    mavenCentral()
 }
 
 jar {

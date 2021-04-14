@@ -26,7 +26,7 @@ check_env CASHMERE_PORT
 
 source $BIN_DIR/create_class_path.bash
 
-CLASSPATH=$(createClassPath $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR "lib/ipl-support-2.3.1.jar")
+CLASSPATH=$(createClassPath $COMMON_SOURCE_IDENTIFICATION_CASHMERE_DIR "lib/ipl-support-2.3.3.jar")
 
 exec java -classpath $CLASSPATH \
      -Dgat.adapter.path \
