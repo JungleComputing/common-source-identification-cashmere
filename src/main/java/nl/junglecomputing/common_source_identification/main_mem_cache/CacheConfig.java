@@ -19,7 +19,8 @@ package nl.junglecomputing.common_source_identification.main_mem_cache;
 import org.slf4j.Logger;
 
 import ibis.constellation.util.MemorySizes;
-import sun.misc.VM;
+// import sun.misc.VM; Not possible since Java 9
+import nl.junglecomputing.common_source_identification.GetMaxDirectMem;
 
 @SuppressWarnings("restriction")
 public class CacheConfig {
@@ -31,7 +32,8 @@ public class CacheConfig {
     }
 
     public static int getNrNoisePatternsMemory(int sizeNoisePattern, long memReservedForGrayscale) {
-        long spaceForNoisePatterns = VM.maxDirectMemory() - memReservedForGrayscale;
+        // long spaceForNoisePatterns = VM.maxDirectMemory() - memReservedForGrayscale;
+        long spaceForNoisePatterns = GetMaxDirectMem.maxDirectMemory() - memReservedForGrayscale;
         int nrNoisePatterns = nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
 
         if (logger.isDebugEnabled()) {

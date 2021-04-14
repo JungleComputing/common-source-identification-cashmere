@@ -19,7 +19,8 @@ package nl.junglecomputing.common_source_identification.multipleGPUs;
 import org.slf4j.Logger;
 
 import ibis.constellation.util.MemorySizes;
-import sun.misc.VM;
+// import sun.misc.VM; not possible since Java 9
+import nl.junglecomputing.common_source_identification.GetMaxDirectMem;
 
 @SuppressWarnings("restriction")
 public class CacheConfig {
@@ -31,7 +32,8 @@ public class CacheConfig {
     }
 
     public static int getNrNoisePatternsMemory(int sizeNoisePattern, long spaceForGrayscale) {
-        long spaceForNoisePatterns = VM.maxDirectMemory() - spaceForGrayscale;
+        // long spaceForNoisePatterns = VM.maxDirectMemory() - spaceForGrayscale;
+        long spaceForNoisePatterns = GetMaxDirectMem.maxDirectMemory() - spaceForGrayscale;
         int nrNoisePatterns = nrNoisePatternsForSpace(spaceForNoisePatterns, sizeNoisePattern);
 
         if (logger.isDebugEnabled()) {
